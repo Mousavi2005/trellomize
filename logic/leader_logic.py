@@ -1,0 +1,2 @@
+class leader(user):
+    pass
