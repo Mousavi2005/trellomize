@@ -5,20 +5,24 @@ from model.base_entity import Base
 from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
 from logic.user_logic import user
-# from logic.project_logic import project
+from logic.project_logic import project
 engine = create_engine("postgresql://postgres:foxit@localhost/trello")
 
 Base.metadata.create_all(engine)
 
 
 
-x=user()
-x.create_user()
+x = project()
 
 def get_session():
     Session = sessionmaker(bind=engine)
     session = Session()
     return session
+
+
+
+
+
 
 
 # import psycopg2
