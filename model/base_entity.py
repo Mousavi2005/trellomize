@@ -30,6 +30,12 @@ class ProjectEntity(BaseEntity):
     users = relationship("UserEntity",secondary = "userproject",back_populates="projects")
     leaders = relationship("LeaderEntity",back_populates="project")
 
+class ManagerEntity(BaseEntity):
+    __tablename__ = "admin"
+    
+    admin_name = Column(String)
+    admin_pass = Column(String)
+
 class LeaderEntity(BaseEntity):
     __tablename__ = "leaders"
 

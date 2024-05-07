@@ -1,3 +1,4 @@
+import argparse
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -6,13 +7,14 @@ from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
 from logic.user_logic import user
 from logic.project_logic import project
+from logic.manager_logic import manager
 engine = create_engine("postgresql://postgres:foxit@localhost/trello")
 
 Base.metadata.create_all(engine)
 
 
 
-x = project()
+x = manager()
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -25,6 +27,10 @@ def get_session():
 
 
 
+
+
+
+#           UPDATING DATABASE CODE
 # import psycopg2
 
 # # Connect to the database
