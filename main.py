@@ -5,9 +5,11 @@ from model.base_entity import Base
 from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
 from logic.user_logic import user
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+# from logic.project_logic import project
+engine = create_engine("postgresql://postgres:foxit@localhost/trello")
 
 Base.metadata.create_all(engine)
+
 
 
 x=user()
@@ -17,3 +19,29 @@ def get_session():
     Session = sessionmaker(bind=engine)
     session = Session()
     return session
+
+
+# import psycopg2
+
+# # Connect to the database
+# conn = psycopg2.connect(
+#     dbname="trello",
+#     user="postgres",
+#     password="foxit",
+#     host="localhost",  # Assuming your local PostgreSQL is running on localhost
+#     port="5432"  # Default PostgreSQL port
+# )
+# cursor = conn.cursor()
+
+# # Drop all tables
+# drop_tables_query = """
+#     DROP SCHEMA public CASCADE;
+#     CREATE SCHEMA public;
+# """
+# cursor.execute(drop_tables_query)
+
+# # Commit the transaction
+# conn.commit()
+
+# # Close the connection
+# conn.close()

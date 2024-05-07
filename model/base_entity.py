@@ -22,6 +22,7 @@ class BaseEntity(Base):
 
 class ProjectEntity(BaseEntity):
     __tablename__ = "projects"
+    project_name = Column(String, unique=False , index=True)
     username = Column(String, unique=True, index=True)
     first_name = Column(String, unique=False, index=True)
     last_name = Column(String, unique=False, index=True)
@@ -31,6 +32,7 @@ class ProjectEntity(BaseEntity):
 
 class LeaderEntity(BaseEntity):
     __tablename__ = "leaders"
+
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship("UserEntity", back_populates="leaders")
     project_id = Column(Integer, ForeignKey('projects.id'))
@@ -39,6 +41,7 @@ class LeaderEntity(BaseEntity):
 class UserEntity(BaseEntity):
     __tablename__ = "users"
     username = Column(String, unique=True, index=True)
+    gmail = Column(String, unique=True,index=True)
     first_name = Column(String, unique=False, index=True)
     last_name = Column(String, unique=False, index=True)
     hash_password = Column(String)
