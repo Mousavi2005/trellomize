@@ -41,6 +41,10 @@ class user:
         last_name = input("please enter last_name : ")
         return gmail, username, hash_password, first_name, last_name
 
+
+
+
+
 def get_credentials_from_database(table_name):
     try:
         # Create a session
