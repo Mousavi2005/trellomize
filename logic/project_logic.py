@@ -2,6 +2,7 @@ from sqlalchemy import select
 from model.base_entity import ProjectEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from logic.user_logic import get_credentials_from_database
 
 engine = create_engine("postgresql://postgres:foxit@localhost/trello")
 
@@ -34,7 +35,19 @@ class project:
         first_name = input("Enter first name:")
         last_name = input("Enter last name:")
         hash_password = input("Enter password:")
-        self.create_project(project_name, user_name, first_name, last_name, hash_password)
+        credentials = get_credentials_from_database('users')
+        # print(get_credentials_from_database("users"))
+        temp = 0
+        for key, value in credentials.items():
+            if key == user_name and value == hash_password:
+                self.create_project(project_name, user_name, first_name, last_name, hash_password)
+                print("Project made successfully ")
+                temp = 1
+                break
+        if temp == 0:
+            print("You entered username or password wrong. Try again: ")
+        
+
 
 
 
