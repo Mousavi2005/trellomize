@@ -5,13 +5,14 @@ from model.base_entity import Base
 from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
 from logic.user_logic import user
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+engine = create_engine("postgresql://postgres:postgres@localhost/t")
 
 Base.metadata.create_all(engine)
 
 
 x=user()
-x.create_user()
+x.signin_user()
+x.signup_user()
 
 def get_session():
     Session = sessionmaker(bind=engine)

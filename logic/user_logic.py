@@ -13,60 +13,62 @@ def get_session():
 
 class user:
     def __init__(self):
-        # self.password = password
-        # self.username = username
-        # self.validatore()
+        self.username = None
+        self.hash_password = None
+        self.first_name = None
+        self.last_name = None
+        self.id = None
         self.session = get_session()
 
-    def create_user(self,username=input("please enter username : "),hash_password = input("please enter password : "),first_name = input("please enter first_name : "),last_name = input("please enter last_name : ")):
-        user = self.session.execute(select(UserEntity).filter_by(username=username))
+    def signup_user(self):
+        self.input_user_signup()
+        user = self.session.execute(select(UserEntity).filter_by(username=self.username))
         result_edited = user.scalars().one_or_none()
-        print(result_edited)
-        if result_edited:
-            print("username is exist")
-        else:
-            db_model = UserEntity(username=username,hash_password=hash_password,first_name=first_name,last_name=last_name)
-            self.session.add(db_model)
-            self.session.commit()
-            self.session.refresh(db_model)
-            
-    # def display_info(self):
-    #     try:
-    #         if self.validatore():
-    #             print(f"user_name : {self.username}  passwprd : {self.password}")
-    #         else:
-    #             raise Exception("Value Error")
-    #     except Exception as e:
-    #         print(e)
-    # def validatore(self):
-    #     try:
-    #         if len(self.password) <= 8 :
-    #             raise Exception("Your password must have at least 8 characters")
-    #         if len(self.username) <=4 :
-    #             raise Exception("Your user name must have atleat 4 charachters")
-    #     except  Exception as e:
-    #         print(e)
-    # def get_password_for_new_account(self):
-    #     try:
-    #         if len(self.password) <= 8 :
-    #             raise Exception("Your password must have at least 8 characters")
-    #     except Exception as e:
-    #         print(e)
+        try:
+            if result_edited:
+                raise Exception("username is exist. please choise other username")
+            else:
+                db_model = UserEntity(username=self.username,hash_password=self.hash_password,first_name=self.first_name,last_name=self.last_name)
+                self.session.add(db_model)
+                self.session.commit()
+                self.session.refresh(db_model)
+                print("signup successfully")
+        except Exception as e:
+            print(e)
+        
+    def signin_user(self):
+        self.input_user_signin()
+        user = self.session.execute(select(UserEntity).filter_by(username=self.username))
+        result_edited = user.scalars().one_or_none()
+        try:
+            if result_edited:
+                if self.hash_password!=result_edited.hash_password:
+                    raise Exception("password is false")
+                else:
+                    print("login successfully")
+                    self.id=result_edited.id
+            else:
+                raise Exception("you should signup. username dose not exist")
+        except Exception as e:
+            print(e)
 
-        # here we have to check if password is reapeted
-        # if not add it to database
+    def signout(self):
+        print("signout successfully")
+        self.id = None
 
-    def check_login_password(self,password):
-        pass
-        # here we have to check if password is in database
+    def input_user_signup(self):
+        self.username=input("please enter username : ")
+        self.first_name = input("please enter first_name : ")
+        self.last_name = input("please enter last_name : ")
+        self.hash_password = input("please enter password : ")
+        
     
-    # def get_username_for_new_account(self):
-    #     try:
-    #         if len(self.username) <=4 :
-    #             raise Exception("Your user name must have atleat 4 charachters")
-    #     except Exception as e:
-    #             print(e)
-            # here we have to check if username is in database
-            # if not add it to database
-# x = user()
-# print(x.display_info())
+    def input_user_signin(self):
+        self.username=input("please enter username : ")
+        self.hash_password= input("please enter password : ")
+
+    def get_id_user_login(self):
+        return self.id
+       
+    
+    
