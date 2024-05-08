@@ -1,7 +1,9 @@
 from sqlalchemy import select
 from model.base_entity import UserEntity
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, Table
+import psycopg2
+from tabulate import tabulate
 
 engine = create_engine("postgresql://postgres:foxit@localhost/trello")
 
@@ -39,8 +41,30 @@ class user:
         last_name = input("please enter last_name : ")
         return gmail, username, hash_password, first_name, last_name
 
+def get_credentials_from_database(table_name):
+    try:
+        # Create a session
+        session = get_session()
 
+        # Reflect the table
+        metadata = MetaData()
+        metadata.reflect(engine)
+        table = Table(table_name, metadata, autoload=True)
 
+        # Query the table and fetch all rows
+        rows = session.query(table).all()
+
+        # Create a dictionary to store usernames and passwords
+        credentials = {row.username: row.hash_password for row in rows}
+
+        # Close the session
+        session.close()
+
+        # Return the dictionary of credentials
+        return credentials
+
+    except Exception as e:
+        print("Error while fetching data from database:", e)
 # from sqlalchemy import select, text, update
 # from model.base_entity import UserEntity
 # from sqlalchemy.orm import relationship, sessionmaker
