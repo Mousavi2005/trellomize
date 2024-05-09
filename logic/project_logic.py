@@ -6,9 +6,10 @@ from logic.user_logic import get_credentials_from_database
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
+from logic.user_logic import get_credentials_from_database
 import psycopg2
 
-engine = create_engine("postgresql://postgres:foxit@localhost/trello")
+engine = create_engine("postgresql://postgres:foxit@localhost/user")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -32,20 +33,21 @@ class project:
             self.session.add(db_model)
             self.session.commit()
             self.session.refresh(db_model)
+            print("project made succesfully.")
 
     def create_project_from_input(self):
-        project_name = input("Enter project name:")
-        user_name = input("Enter user name:")
-        first_name = input("Enter first name:")
-        last_name = input("Enter last name:")
-        hash_password = input("Enter password:")
+        project_name = input("Enter project name: ")
+        user_name = input("Enter user name: ")
+        first_name = input("Enter first name: ")
+        last_name = input("Enter last name: ")
+        hash_password = input("Enter password: ")
         credentials = get_credentials_from_database('users')
         # print(get_credentials_from_database("users"))
         temp = 0
         for key, value in credentials.items():
             if key == user_name and value == hash_password:
                 self.create_project(project_name, user_name, first_name, last_name, hash_password)
-                print("Project made successfully ")
+                # print("Project made successfully ")
                 temp = 1
                 break
         if temp == 0:

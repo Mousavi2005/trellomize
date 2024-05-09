@@ -1,10 +1,11 @@
 # from ..main import get_session
-from sqlalchemy import select, text, update
+from sqlalchemy import select, text, update, MetaData, Table
 from model.base_entity import UserEntity
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+
+engine = create_engine("postgresql://postgres:foxit@localhost/user")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -69,6 +70,27 @@ class user:
 
     def get_id_user_login(self):
         return self.id
+
+
+def get_credentials_from_database(table_name):
+    try:
+        # Create a session
+        session = get_session()
+        # Reflect the table
+        metadata = MetaData()
+        metadata.reflect(engine)
+        table = Table(table_name, metadata, autoload=True)
+        # Query the table and fetch all rows
+        rows = session.query(table).all()
+        # Create a dictionary to store usernames and passwords
+        credentials = {row.username: row.hash_password for row in rows}
+        # Close the session
+        session.close()
+        # Return the dictionary of credentials
+        return credentials
+    except Exception as e:
+        print("Error while fetching data from database:", e)
+
        
     
     

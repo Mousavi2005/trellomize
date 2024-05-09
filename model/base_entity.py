@@ -23,7 +23,7 @@ class BaseEntity(Base):
 class ProjectEntity(BaseEntity):
     __tablename__ = "projects"
     project_name = Column(String, unique=False , index=True)
-    username = Column(String, unique=True, index=True)
+    username = Column(String, unique=False, index=True)
     first_name = Column(String, unique=False, index=True)
     last_name = Column(String, unique=False, index=True)
     hash_password = Column(String)
