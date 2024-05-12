@@ -10,7 +10,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 import psycopg2
 
-engine = create_engine("postgresql://postgres:foxit@localhost/user")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -65,7 +65,7 @@ def ban_user():
     conn = psycopg2.connect(
         dbname="trello",
         user="postgres",
-        password="foxit",
+        password="postgres",
         host="localhost",
         port="5432"  
     )
