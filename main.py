@@ -4,15 +4,16 @@ from sqlalchemy.orm import relationship, sessionmaker
 from model.base_entity import Base
 from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
-from logic.user_logic import user
-engine = create_engine("postgresql://postgres:postgres@localhost/t")
+from logic.user_logic import  UserLogic
+from logic.project_logic import project
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 Base.metadata.create_all(engine)
 
-
-x=user()
-x.signin_user()
-x.signup_user()
+u=UserLogic()
+u.signin_user()
+x = project(u)
+x.create_project()
 
 def get_session():
     Session = sessionmaker(bind=engine)

@@ -11,7 +11,7 @@ def get_session():
     session = Session()
     return session
 
-class user:
+class UserLogic:
     def __init__(self):
         self.username = None
         self.hash_password = None
