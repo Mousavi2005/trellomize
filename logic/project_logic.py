@@ -9,7 +9,7 @@ from rich.table import Table
 import psycopg2
 from logic.user_logic import UserLogic
 from model.base_entity import UserEntity,UserProjectEntity
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -18,9 +18,10 @@ def get_session():
 
 class project:
     def __init__(self,use=None):
-        self.use=use
+        self.use = use
         self.project_name = None
         self.user_id = None
+        self.id = None
         self.session = get_session()
 
     def create_project(self):
@@ -29,7 +30,7 @@ class project:
             user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
             user = user.scalars().one_or_none()
             self.create_project_from_input()
-
+            
             project_name_exist=self.session.execute(select(
             ProjectEntity.project_name,
             UserProjectEntity.id,
@@ -49,6 +50,8 @@ class project:
             model_project = ProjectEntity(project_name=self.project_name, username=user.username, hash_password=user.hash_password, first_name=user.first_name, last_name=user.last_name)
             user.projects.append(model_project)
             model_project.users.append(user)
+            user = self.session.execute(select(UserEntity).filter_by(username=self.use.username))
+            result_edited = user.scalars().one_or_none()
             self.session.add(model_project)
             self.session.commit()
             self.session.refresh(model_project)
@@ -67,6 +70,9 @@ class project:
         #     self.session.add(db_model)
         #     self.session.commit()
         #     self.session.refresh(db_model)
+
+    def get_project_id(self):
+        return self.id
 
     def create_project_from_input(self):
         self.project_name = input("Enter project name:")

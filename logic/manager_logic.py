@@ -10,7 +10,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 import psycopg2
 
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 
 def get_session():
     Session = sessionmaker(bind=engine)
