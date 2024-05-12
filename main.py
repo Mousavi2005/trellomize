@@ -6,6 +6,7 @@ from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
 from logic.user_logic import user, get_credentials_from_database
 from logic.project_logic import project, project_menu
+from logic.task_logic import tasks
 import psycopg2
 from psycopg2 import OperationalError
 
@@ -18,6 +19,8 @@ Base.metadata.create_all(engine)
 # x=user()
 # x.signin_user()
 # x.signup_user()
+x = tasks()
+x.create_task()
 
 def get_session():
     Session = sessionmaker(bind=engine)
