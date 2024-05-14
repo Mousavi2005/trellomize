@@ -77,22 +77,34 @@ class UserLogic:
 
 def get_credentials_from_database(table_name):
     try:
-        # Create a session
         session = get_session()
-        # Reflect the table
-        metadata = MetaData()
-        metadata.reflect(engine)
-        table = Table(table_name, metadata, autoload=True)
-        # Query the table and fetch all rows
-        rows = session.query(table).all()
-        # Create a dictionary to store usernames and passwords
-        credentials = {row.username: row.hash_password for row in rows}
-        # Close the session
+        credentials = session.query(UserEntity).all()
+        for user in credentials:
+            print(f"Username: {user.username}, Password: {user.hash_password}")
+
+    # Close the session
         session.close()
-        # Return the dictionary of credentials
-        return credentials
     except Exception as e:
         print("Error while fetching data from database:", e)
+
+# def get_user_credentials():
+#     try:
+#         # Create engine and session
+#         eengine = create_engine("postgresql://postgres:foxit@localhost/t2")
+#         Session = sessionmaker(bind=engine)
+#         session = Session()
+
+#         # Query to fetch usernames and passwords
+#         projects = session.query(ProjectEntity).all()
+
+#         # Close the session
+#         session.close()
+
+#         # Convert to dictionary
+#         credentials = {p.project_name: p.user_name for p in projects}
+#         return credentials
+#     except Exception as e:
+#         print("Error while fetching data from database:", e)
 
        
     

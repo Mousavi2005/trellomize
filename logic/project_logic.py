@@ -161,5 +161,34 @@ def delet_project():
     cur.close()
     conn.close()
 
+# def get_credentials_from_database3(table_name):
+#     try:
+#         session = get_session()
+#         credentials = session.query(ProjectEntity).all()
+#         credentials_dict = {credential.username: credential.id for credential in credentials}
+#         session.close()
+#         return credentials_dict
+#     except Exception as e:
+#         print("Error while fetching data from database:", e)
+
+def get_user_credentials():
+    try:
+        # Create engine and session
+        eengine = create_engine("postgresql://postgres:foxit@localhost/t2")
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # Query to fetch usernames and passwords
+        projects = session.query(ProjectEntity).all()
+
+        # Close the session
+        session.close()
+
+        # Convert to dictionary
+        credentials = {p.project_name: p.username for p in projects}
+        return credentials
+    except Exception as e:
+        print("Error while fetching data from database:", e)
+
 
  

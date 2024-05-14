@@ -8,7 +8,7 @@ from logic.user_logic import get_credentials_from_database
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
-from logic.project_logic import project
+from logic.project_logic import project, get_user_credentials
 from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity
 import psycopg2
 
@@ -22,7 +22,8 @@ def get_session():
 
 
 class tasks:
-    def __init__(self,project=None):
+    def __init__(self,project=None,user=None):
+        self.user = user
         self.proj = project
         self.session = get_session()
         self.task_name = None
@@ -50,15 +51,22 @@ class tasks:
 
 
         if self.project_id != None:
-            self.input_task_info()
-            task = self.session.execute(select(TaskEntity).filter(TaskEntity.task_name==self.task_name, TaskEntity.project_id == self.project_id))
-            task = task.scalars().one_or_none()
-            if task == None:
-                # print("--------------------wewe-----------------")
-                db_model = TaskEntity(task_name=self.task_name,task_description=self.task_description,project_id=self.project_id)
-                self.session.add(db_model)
-                self.session.commit()
-                self.session.refresh(db_model)
+            # check if this project has this task or not
+
+            tempbool = self.input_task_info()
+            # print(tempbool)
+            if tempbool == True:
+                # print("qqqqqqqqqqqqqqqqqqqqqqqq")
+                task = self.session.execute(select(TaskEntity).filter(TaskEntity.task_name==self.task_name, TaskEntity.project_id == self.project_id))
+                task = task.scalars().one_or_none()
+                if task == None:
+                    # print("--------------------wewe-----------------")
+                    db_model = TaskEntity(task_name=self.task_name,task_description=self.task_description,project_id=self.project_id)
+                    self.session.add(db_model)
+                    self.session.commit()
+                    self.session.refresh(db_model)
+            else:
+                print("this project has this task. ")
 
         #     task_name_exist = self.session.execute(select(
         #     ProjectEntity.project_name,
@@ -82,11 +90,58 @@ class tasks:
             # self.session.add(model_project)
             # self.session.commit()
             # self.session.refresh(model_project)
-                print("create task successfull")
+                # print("create task successfull")
         else:
             print("not authentication. you should login or signup")
 
 
     def input_task_info(self):
-        self.task_name = input("Enter task name: ")
-        self.task_description = input("Enter task description: ")
+        pname = input("enter project name: ")
+        username = input("Enter user-name: ")
+        task_name = input("Enter task name: ")
+        task_description = input("Enter task description: ")
+        x = get_user_credentials()
+        # dic = get_credentials_from_database2("tasks")
+        user_project = self.session.query(ProjectEntity).filter_by(username=self.user.username).first()
+        # print(x)
+        # print(dic)
+        # print(x)
+
+
+        t = 0
+        for key , value in x.items():
+            print(key)
+            print(value)
+            if key == pname and value == username:
+                # print("========================================")
+                t = 1
+        if t == 0 :
+            return False
+
+        
+                
+        if t == 1:
+            task = get_credentials_from_database2("tasks")
+            # print(dic)
+            # print("----------------r-rr--------------r")
+            # user_project = self.session.query(ProjectEntity).filter_by(username=self.user.username).first()
+            for taskname, projectid in task.items():
+                if taskname == task_name and projectid == user_project.id:
+                    # if projectid == user_project.id:
+                    print("--------------------5------------------")
+                    return False
+                        
+            self.task_name = task_name
+            self.task_description = task_description
+            return True
+
+
+def get_credentials_from_database2(table_name):
+    try:
+        session = get_session()
+        credentials = session.query(TaskEntity).all()
+        credentials_dict = {credential.task_name: credential.project_id for credential in credentials}
+        session.close()
+        return credentials_dict
+    except Exception as e:
+        print("Error while fetching data from database:", e)
