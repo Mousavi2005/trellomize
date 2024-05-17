@@ -20,7 +20,7 @@ class BaseEntity(Base):
 class TaskEntity(BaseEntity):
     __tablename__ = "tasks"
 
-    task_id = Column(String, unique=True,index=True)
+    task_id = Column(BIGINT, unique=True,index=True)
     task_name = Column(String)
     task_description = Column(String)
 
@@ -78,7 +78,6 @@ class UserEntity(BaseEntity):
 class UserProjectEntity(BaseEntity):
     __tablename__ = "userproject"
     user_id = Column(BIGINT,ForeignKey('users.id'),nullable=False)
-    project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False)
     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False)
 
 # class TaskEntity(BaseEntity):

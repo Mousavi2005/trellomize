@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 
 
-engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -44,9 +44,7 @@ class UserLogic:
         try:
             if result_edited:
                 if self.hash_password!=result_edited.hash_password:
-                    print("-----")
-                    print(self.hash_password)
-                    print(result_edited.hash_password)
+                
                     raise Exception("password is false")
                 else:
                     print("login successfully")
