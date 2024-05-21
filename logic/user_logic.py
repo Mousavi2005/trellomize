@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 
 
-engine = create_engine("postgresql://postgres:postgres@localhost/trello")
+engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -21,38 +21,82 @@ class UserLogic:
         self.id = None
         self.session = get_session()
 
-    def signup_user(self):
-        self.input_user_signup()
-        user = self.session.execute(select(UserEntity).filter_by(username=self.username))
-        result_edited = user.scalars().one_or_none()
+    # def signup_user(self):
+    #     self.input_user_signup()
+    #     user = self.session.execute(select(UserEntity).filter_by(username=self.username))
+    #     result_edited = user.scalars().one_or_none()
+    #     try:
+    #         if result_edited:
+    #             raise Exception("username is exist. please choise other username")
+    #         else:
+    #             db_model = UserEntity(username=self.username,hash_password=self.hash_password,first_name=self.first_name,last_name=self.last_name)
+    #             self.session.add(db_model)
+    #             self.session.commit()
+    #             self.session.refresh(db_model)
+    #             print("signup successfully")
+    #     except Exception as e:
+    #         print(e)
+
+
+    def signup_user(self,username, password):
+        # session = SessionLocal()
+        new_user = UserEntity(username=username, hash_password=password)
         try:
-            if result_edited:
-                raise Exception("username is exist. please choise other username")
-            else:
-                db_model = UserEntity(username=self.username,hash_password=self.hash_password,first_name=self.first_name,last_name=self.last_name)
-                self.session.add(db_model)
-                self.session.commit()
-                self.session.refresh(db_model)
-                print("signup successfully")
-        except Exception as e:
-            print(e)
+            self.session.add(new_user)
+            self.session.commit()
+            return True
+        except InterruptedError:
+            self.session.rollback()
+            print("error!!!!!!!!!!!")
+            return False
+        finally:
+            self.session.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
-    def signin_user(self):
-        self.input_user_signin()
-        user = self.session.execute(select(UserEntity).filter_by(username=self.username))
-        result_edited = user.scalars().one_or_none()
-        try:
-            if result_edited:
-                if self.hash_password!=result_edited.hash_password:
+    # def signin_user(self):
+    #     self.input_user_signin()
+    #     user = self.session.execute(select(UserEntity).filter_by(username=self.username))
+    #     result_edited = user.scalars().one_or_none()
+    #     try:
+    #         if result_edited:
+    #             if self.hash_password!=result_edited.hash_password:
                 
-                    raise Exception("password is false")
-                else:
-                    print("login successfully")
-                    self.id=result_edited.id
-            else:
-                raise Exception("you should signup. username dose not exist")
-        except Exception as e:
-            print(e)
+    #                 raise Exception("password is false")
+    #             else:
+    #                 print("login successfully")
+    #                 self.id=result_edited.id
+    #         else:
+    #             raise Exception("you should signup. username dose not exist")
+    #     except Exception as e:
+    #         print(e)
+
+
+    def login_user(self,username, password):
+        # session = SessionLocal()
+        user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
+        result_edited = user.scalars().one_or_none()
+        self.id=result_edited.id
+        self.session.close()
+        return user
+
+    # Initialize the database
+    # init_db()
+
 
     def signout(self):
         print("signout successfully")
