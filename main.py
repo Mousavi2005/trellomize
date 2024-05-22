@@ -7,12 +7,14 @@ from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, S
 from logic.user_logic import UserLogic, get_credentials_from_database
 from logic.project_logic import project
 from logic.task_logic import Tasks
+from logic.manager_logic import ban_user, activate_user
 import psycopg2
-from psycopg2 import OperationalError
+from psycopg2 import OperationalError, sql
 import flet as ft
 from rich.console import Console
 from logic.project_logic import project
-
+# import psycopg2
+# from psycopg2 import sql
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 Base.metadata.create_all(engine)
@@ -23,6 +25,10 @@ def get_session():
     session = Session()
     return session
 
+
+
+# ban_user()
+# activate_user()
 
 
 def main(page: ft.Page):
@@ -37,14 +43,15 @@ def main(page: ft.Page):
     def signup_view(e):
         page.clean()
         username = ft.TextField(label="Username")
+        gmail = ft.TextField(label="Gmail")
         password = ft.TextField(label="Password", password=True)
-        signup_button = ft.ElevatedButton(text="Sign Up", on_click=lambda _: signup(username.value, password.value))
+        signup_button = ft.ElevatedButton(text="Sign Up", on_click=lambda _: signup(username.value, gmail.value, password.value))
 
-        page.add(ft.Column([username, password, signup_button]))
+        page.add(ft.Column([username, gmail, password, signup_button]))
         page.update()
 
-    def signup(username, password):
-        if x.signup_user(username, password):
+    def signup(username, gmail, password):
+        if x.signup_user(username, gmail, password):
             page.session.set("user", username)
             snackbar.content.value = "Signup successful!"
             main_menu()
@@ -66,16 +73,21 @@ def main(page: ft.Page):
         # print(x.get_id_user_login())
 
     def login(username, password):
-        if x.login_user(username, password):
+        if x.login_user(username, password) == "Admin":
+            snackbar.content.value = "login successful admin"
+            admin_menu()
+
+        elif x.login_user(username, password):
             page.session.set("user", username)
+            snackbar.content.value = "login successful!"
+            print(snackbar.content.value)
             main_menu()
-            # print(x.get_id_user_login())
 
         else:
             snackbar.content.value = "Invalid credentials"
-            snackbar.open = True
-            page.snack_bar = snackbar
-            page.update()
+        snackbar.open = True
+        page.snack_bar = snackbar
+        page.update()
 
     def main_menu():
         page.clean()
@@ -89,6 +101,70 @@ def main(page: ft.Page):
         page.add(ft.Column([create_project_button]))
         page.add(ft.Column([create_task_button]))
         page.update()
+
+
+    def admin_menu():
+        page.clean()
+        page.add(ft.Text("Welcome Admin!"))
+
+        ban_user_button = ft.ElevatedButton(text="Ban a user", on_click=ban_user_view)
+        activate_user_button = ft.ElevatedButton(text="Activate a user", on_click=activate_user_view)
+        delete_user_button = ft.ElevatedButton(text="Delete a user", on_click=delete_user_viw)
+
+
+        # create_project_button = ft.ElevatedButton(text="Create Project", on_click=create_project_view)
+        # create_task_button = ft.ElevatedButton(text="create task",on_click=create_task_view)
+        page.add(ft.Column([ban_user_button]))
+        page.add(ft.Column([activate_user_button]))
+        page.add(ft.Column([delete_user_button]))
+        page.update()
+
+       # Add admin-specific functionalities here
+        # For example, you can add buttons to manage users, projects, tasks, etc.
+        # Example:
+        # manage_users_button = ft.ElevatedButton(text="Manage Users", on_click=manage_users_view)
+        # page.add(manage_users_button)
+        # page.update()
+
+    # def manage_users_view(e):
+    #     ban_user_button = ft.ElevatedButton(text="Ban a user", on_click=lambda _: login(username.value))
+    #     activate_user_button = ft.ElevatedButton(text="Activate a user", on_click=lambda _: ban_user(username.value))
+
+        # Function to display the view to manage users
+        # Example: Display a list of users with options to delete or edit them
+        # Add your implementation here
+
+    # Your existing code for other functionalities
+    def ban_user_view(e):
+        
+        page.clean()
+        username = ft.TextField(label="Username you want to ban")
+        # ban_button = ft.ElevatedButton(text="Ban", on_click=lambda _: ban_user(username.value))
+        ban_button = ft.ElevatedButton(text="Ban", on_click=lambda _: store_ban_result(username.value))
+        
+        page.add(ft.Column([username, ban_button]))
+        page.update()
+
+    def store_ban_result(username):
+        massage = ban_user(username)
+        # print(massage)
+        # Store the ban result here or perform any further actions
+        snackbar.content.value = massage
+        snackbar.open = True
+        page.snack_bar = snackbar
+        admin_menu()
+        page.update()
+
+    def activate_user_view():
+        pass
+
+    def activate_user():
+        pass
+
+
+    def delete_user_viw():
+        pass
+
 
     def create_project_view(e):
         page.clean()
@@ -152,14 +228,45 @@ ft.app(target=main)
 
 
     
-        #   UPDATING DATABASE CODE
 # import psycopg2
-# # Connect to the database
-# conn = psycopg2.connect(
-#     dbname="trello",
-#     user="postgres",
-#     password="foxit",
-#     host="localhost",  # Assuming your local PostgreSQL is running on localhost
-#     port="5432"  # Default PostgreSQL port
-# )
-# cursor = conn.cursor()
+# from psycopg2 import sql
+
+# Configuration
+# dbname = "t2"
+# user = "postgres"
+# password = "foxit"
+# host = "localhost"
+# port = "5432"  # Default PostgreSQL port
+
+# # Connect to the PostgreSQL server
+# conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+# conn.autocommit = True
+
+# # Create a cursor object
+# cur = conn.cursor()
+
+# try:
+#     # Query to get a list of all tables in the database
+#     cur.execute("""
+#         SELECT tablename FROM pg_catalog.pg_tables
+#         WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';
+#     """)
+    
+#     # Fetch all table names
+#     tables = cur.fetchall()
+
+#     # Drop each table
+#     for table in tables:
+#         table_name = table[0]
+#         cur.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE;")
+#         print(f"Dropped table {table_name}")
+
+#     print("All tables dropped successfully.")
+
+# except Exception as e:
+#     print(f"Error: {e}")
+
+# finally:
+#     # Close the cursor and connection
+#     cur.close()
+#     conn.close()

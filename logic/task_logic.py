@@ -87,6 +87,7 @@ class Tasks:
                     self.session.add(db_model)
                     self.session.commit()
                     self.session.refresh(db_model)
+                    return "Task made successfully"
                 else:
                     # print("this project has this task. ")
                     return "this project has this task."

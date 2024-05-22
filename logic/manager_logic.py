@@ -58,14 +58,14 @@ def check_banned_user(username):
         session.close()
 
 
-def ban_user():
+def ban_user(username):
     console = Console()
 
-    username = input("Enter username: ")
+    # username = input("Enter username: ")
     conn = psycopg2.connect(
-        dbname="trello",
+        dbname="t2",
         user="postgres",
-        password="postgres",
+        password="foxit",
         host="localhost",
         port="5432"  
     )
@@ -82,12 +82,59 @@ def ban_user():
     row_count = cur.fetchone()[0]
     
     if row_count > 0 and check_banned_user(username):
+        # decision = Prompt.ask('[bold red]Are you sure? (yes/no)  : [/bold red]')
+        # if decision == 'yes' :
+        update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
+        cur.execute(update_query, (isactive,username))
+        conn.commit()
+        # console.print("[bold green]user banned successfully.[/bold green]")
+        return "user banned successfully"
+        # else :
+        #     pass
+    elif row_count == 0:
+        # console.print("[bold red]user does not exist. you may have entered username wrong.[/bold red]")
+        return "user does not exist. you may have entered username wrong."
+    else:
+        # print("user is already baned")
+        return "user is already baned"
+        
+
+    cur.close()
+    conn.close()
+
+
+
+def activate_user():
+
+    console = Console()
+
+    username = input("Enter username: ")
+    conn = psycopg2.connect(
+        dbname="t2",
+        user="postgres",
+        password="foxit",
+        host="localhost",
+        port="5432"  
+    )
+
+    cur = conn.cursor()
+
+    username_to_activate = username
+    isactive = 't'
+
+
+    select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
+
+    cur.execute(select_query, (username,))
+    row_count = cur.fetchone()[0]
+    
+    if row_count > 0 and not check_banned_user(username):
         decision = Prompt.ask('[bold red]Are you sure? (yes/no)  : [/bold red]')
         if decision == 'yes' :
             update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
             cur.execute(update_query, (isactive,username))
             conn.commit()
-            console.print("[bold green]user banned successfully.[/bold green]")
+            console.print("[bold green]user activated successfully.[/bold green]")
         else :
             pass
     else:
@@ -95,6 +142,5 @@ def ban_user():
 
     cur.close()
     conn.close()
-
 
 

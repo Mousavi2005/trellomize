@@ -66,7 +66,7 @@ class LeaderEntity(BaseEntity):
 class UserEntity(BaseEntity):
     __tablename__ = "users"
     username = Column(String, unique=True, index=True)
-    # gmail = Column(String, unique=True,index=True)
+    gmail = Column(String, unique=True,index=True)
     first_name = Column(String, unique=False, index=True)
     last_name = Column(String, unique=False, index=True)
     hash_password = Column(String)

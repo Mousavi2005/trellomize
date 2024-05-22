@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from model.base_entity import Base
 from model import base_entity
 from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, String, ForeignKey, Integer,VARCHAR
-from logic.user_logic import user
+# from logic.user_logic import UserLogic
 from logic.project_logic import project
 from logic.manager_logic import manager
 
