@@ -29,6 +29,7 @@ def main(page: ft.Page):
     page.title = "Project Management System"
     x = UserLogic()
     y = project(x)
+    z = Tasks(y,x)
 
     # Initialize the snackbar with default content
     snackbar = ft.SnackBar(content=ft.Text(""))
@@ -46,12 +47,13 @@ def main(page: ft.Page):
         if x.signup_user(username, password):
             page.session.set("user", username)
             snackbar.content.value = "Signup successful!"
+            main_menu()
         else:
             snackbar.content.value = "Username already exists"
         snackbar.open = True
         page.snack_bar = snackbar
         page.update()
-        main_menu()
+        # main_menu()
 
     def login_view(e):
         page.clean()
@@ -83,7 +85,9 @@ def main(page: ft.Page):
         else:
             page.add(ft.Text("Welcome!"))
         create_project_button = ft.ElevatedButton(text="Create Project", on_click=create_project_view)
+        create_task_button = ft.ElevatedButton(text="create task",on_click=create_task_view)
         page.add(ft.Column([create_project_button]))
+        page.add(ft.Column([create_task_button]))
         page.update()
 
     def create_project_view(e):
@@ -98,6 +102,28 @@ def main(page: ft.Page):
         user = page.session.get("user")
         # Add your logic to handle project creation here
         massage = y.create_project(project_name)
+        snackbar.content.value = massage
+        snackbar.open = True
+        page.snack_bar = snackbar
+        main_menu()
+        page.update()
+
+
+    def create_task_view(e):
+        page.clean()
+        add_task_to_which_project = ft.TextField(label="this task adds to which project?")
+        task_name = ft.TextField(label="Task Name")
+        task_description = ft.TextField(label="Task Description")
+        create_button = ft.ElevatedButton(text="Create", on_click=lambda _: create_task(add_task_to_which_project.value, task_name.value, task_description.value))
+        
+        page.add(ft.Column([add_task_to_which_project, task_name, task_description, create_button]))
+        page.update()
+
+    def create_task(add_task_to_which_project,task_name, task_description):
+        user = page.session.get("user")
+        # Add your logic to handle task creation here
+        massage = z.create_task(add_task_to_which_project, task_name, task_description)
+        # message = y.create_task(task_name, task_description)
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar

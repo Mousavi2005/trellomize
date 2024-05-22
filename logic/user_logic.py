@@ -3,6 +3,7 @@ from sqlalchemy import select, text, update, MetaData, Table
 from model.base_entity import UserEntity
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+import regex as re
 
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
@@ -21,81 +22,40 @@ class UserLogic:
         self.id = None
         self.session = get_session()
 
-    # def signup_user(self):
-    #     self.input_user_signup()
-    #     user = self.session.execute(select(UserEntity).filter_by(username=self.username))
-    #     result_edited = user.scalars().one_or_none()
-    #     try:
-    #         if result_edited:
-    #             raise Exception("username is exist. please choise other username")
-    #         else:
-    #             db_model = UserEntity(username=self.username,hash_password=self.hash_password,first_name=self.first_name,last_name=self.last_name)
-    #             self.session.add(db_model)
-    #             self.session.commit()
-    #             self.session.refresh(db_model)
-    #             print("signup successfully")
-    #     except Exception as e:
-    #         print(e)
-
 
     def signup_user(self,username, password):
+        temdictionary = get_credentials_from_database('users')
+        k = 0
+        for key, value in temdictionary.items():
+            if key == username:
+                k = 1
+
         # session = SessionLocal()
-        new_user = UserEntity(username=username, hash_password=password)
-        try:
-            self.session.add(new_user)
-            self.session.commit()
-            return True
-        except InterruptedError:
-            self.session.rollback()
-            print("error!!!!!!!!!!!")
+        if k == 0 :
+            new_user = UserEntity(username=username, hash_password=password)
+            try:
+                self.session.add(new_user)
+                self.session.commit()
+                return True
+            except InterruptedError:
+                self.session.rollback()
+                print("error!!!!!!!!!!!")
+                return False
+            finally:
+                self.session.close()
+                return True
+        else : 
             return False
-        finally:
-            self.session.close()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    # def signin_user(self):
-    #     self.input_user_signin()
-    #     user = self.session.execute(select(UserEntity).filter_by(username=self.username))
-    #     result_edited = user.scalars().one_or_none()
-    #     try:
-    #         if result_edited:
-    #             if self.hash_password!=result_edited.hash_password:
-                
-    #                 raise Exception("password is false")
-    #             else:
-    #                 print("login successfully")
-    #                 self.id=result_edited.id
-    #         else:
-    #             raise Exception("you should signup. username dose not exist")
-    #     except Exception as e:
-    #         print(e)
 
 
     def login_user(self,username, password):
         # session = SessionLocal()
         user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
         result_edited = user.scalars().one_or_none()
-        self.id=result_edited.id
+        self.id = result_edited.id
         self.session.close()
         return user
-
-    # Initialize the database
-    # init_db()
 
 
     def signout(self):
@@ -116,37 +76,26 @@ class UserLogic:
     def get_id_user_login(self):
         return self.id
 
+    def is_gmail(email):
+        return bool(re.match(r'^[a-zA-Z0-9_.+-]+@gmail\.com$', email))
+
+
 
 def get_credentials_from_database(table_name):
     try:
         session = get_session()
         credentials = session.query(UserEntity).all()
+        
+        credentials_dict = {}
         for user in credentials:
-            print(f"Username: {user.username}, Password: {user.hash_password}")
+            credentials_dict[user.username] = user.hash_password
 
-    # Close the session
         session.close()
+        return credentials_dict
+
     except Exception as e:
         print("Error while fetching data from database:", e)
-
-# def get_user_credentials():
-#     try:
-#         # Create engine and session
-#         eengine = create_engine("postgresql://postgres:foxit@localhost/t2")
-#         Session = sessionmaker(bind=engine)
-#         session = Session()
-
-#         # Query to fetch usernames and passwords
-#         projects = session.query(ProjectEntity).all()
-
-#         # Close the session
-#         session.close()
-
-#         # Convert to dictionary
-#         credentials = {p.project_name: p.user_name for p in projects}
-#         return credentials
-#     except Exception as e:
-#         print("Error while fetching data from database:", e)
+        return None
 
        
     
