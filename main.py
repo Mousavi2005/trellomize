@@ -25,8 +25,9 @@ x.signin_user()
 # print(get_credentials_from_database2("tasks"))
 y = project(x)
 y.create_project()
-z = Tasks(y,x)
-z.create_task()
+# z = Tasks(y,x)
+# z.create_task()
+y.add_user_to_project()
 
 def get_session():
     Session = sessionmaker(bind=engine)
