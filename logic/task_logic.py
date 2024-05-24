@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 # from logic.project_logic import project, get_user_credentials
-from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity,LeaderEntity
+from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity,LeaderEntity,CommentEntity,UserTaskEntity
 import psycopg2
 
 engine = create_engine("postgresql://postgres:postgres@localhost/trello")
@@ -35,9 +35,17 @@ class Tasks:
         self.user_id = None
         self.leader_id = None
 
+        self.project_name_add_comment = None
+        self.task_name_add_comment = None
+        self.comment = None
+
+        self.project_name_add_user = None
+        self.task_name_add_user = None
+        self.user_add_user = None
+        self.user_id=self.user.get_id_user_login() 
+
     def create_task(self):
         self.project_name = input("this task adds to which project?: ")
-        self.user_id=self.user.get_id_user_login() 
         project_name_exist=self.session.execute(select(
             ProjectEntity.project_name,
             ProjectEntity.id.label("project_id"),
@@ -81,7 +89,7 @@ class Tasks:
                 print(exist_task)
                 if exist_task == None or exist_task == []:
                     db_model = TaskEntity(task_name=self.task_name,task_description=self.task_description,
-                                          project_id=self.project_id,user_id=self.user_id,leader_id = self.leader_id)
+                                          project_id=self.project_id,leader_id = self.leader_id)
                     self.session.add(db_model)
                     self.session.commit()
                     self.session.refresh(db_model)
@@ -96,48 +104,117 @@ class Tasks:
         self.task_name = input("Enter task name: ")
         self.task_description = input("Enter task description: ")
         return True
-        # x = get_user_credentials()
-        # dic = get_credentials_from_database2("tasks")
-        # user_project = self.session.execute(select(ProjectEntity).filter_by(username=self.user_id))
-        # print(x)
-        # print(dic)
-        # print(x)
-
-
-        # t = 0
-        # for key , value in x.items():
-        #     print(key)
-        #     print(value)
-        #     if key == pname and value == username:
-        #         # print("========================================")
-        #         t = 1
-        # if t == 0 :
-        #     return False
-
-        
+     
+    def add_comment_to_task(self):
+        self.user_id=self.user.get_id_user_login() 
+        self.input_add_comment()
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_add_comment,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+        if project_name_exist==None:
+            print("you have not project with this name!")
+        else:
+            project_id = project_name_exist[1]
+            task_exist = self.session.execute(select(TaskEntity).where(TaskEntity.project_id==project_id,TaskEntity.task_name==self.task_name_add_comment))
+            task_exist = task_exist.scalars().one_or_none()
+            if task_exist == None:
+                print("this project dose not task with this task name!")
+            else:
+                comment = CommentEntity(comment_name=self.comment,project_id=project_id,user_id=self.user_id,task_id=task_exist.id)
+                self.session.add(comment)
+                self.session.commit()
+                self.session.refresh(comment)
                 
-        # if t == 1:
-        #     task = get_credentials_from_database2("tasks")
-        #     # print(dic)
-        #     # print("----------------r-rr--------------r")
-        #     # user_project = self.session.query(ProjectEntity).filter_by(username=self.user.username).first()
-        #     for taskname, projectid in task.items():
-        #         if taskname == task_name and projectid == user_project.id:
-        #             # if projectid == user_project.id:
-        #             print("--------------------5------------------")
-        #             return False
-                        
-        #     self.task_name = task_name
-        #     self.task_description = task_description
-        #     return True
+    def input_add_comment(self):
+        self.project_name_add_comment = input("please enter project name")
+        self.task_name_add_comment = input("please enter taskname")
+        self.comment = input("please enter your comment")
+        return True
+    
+    def add_user_to_task(self):
+        self.input_add_user_task()
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_add_user,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+
+        if project_name_exist==None:
+            print("you have not project with this name!")
+        else:
+            project_id = project_name_exist[1]
+            task = self.session.execute(select(TaskEntity).filter(TaskEntity.project_id==project_id,TaskEntity.task_name==self.task_name_add_user))
+            task=task.scalars().one_or_none()
+            if task==None:
+                print("this task dose not exist in this project")
+            else:
+
+                user_exsit = self.session.execute(select(UserEntity).filter_by(username = self.user_add_user))
+                user_exsit = user_exsit.scalars().one_or_none()
+                if user_exsit == None:
+                    print("The user you want to add to your project does not exist")
+                else:
+                    user_in_task_exist=self.session.execute(select(
+                        ProjectEntity.project_name,
+                        TaskEntity.id,
+                        UserProjectEntity.id,
+                        UserEntity.id,
+                        UserProjectEntity.user_id,
+                        UserProjectEntity.project_id,
+                        TaskEntity.task_name,
+                        UserTaskEntity.id,
+                        UserEntity.id,
+                        UserTaskEntity.user_id,
+                        UserTaskEntity.task_id
+                    ).join(
+                        UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                    ).join(
+                        ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                    ).join(
+                        UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
+                    ).join(
+                        TaskEntity, UserTaskEntity.task_id == TaskEntity.id
+                    ).where(
+                        ProjectEntity.project_name == self.project_name_add_user,
+                        TaskEntity.task_name == self.task_name_add_user,
+                        UserTaskEntity.user_id==user_exsit.id
+                    ))
+                    user_in_task_exist = user_in_task_exist.fetchone()
+
+                    if user_in_task_exist!= None:
+                        print("The user has already been added to your task")
+                    else:
+                        user_exsit.tasks.append(task)
+                        self.session.commit()
+        
 
 
-# def get_credentials_from_database2(table_name):
-#     try:
-#         session = get_session()
-#         credentials = session.query(TaskEntity).all()
-#         credentials_dict = {credential.task_name: credential.project_id for credential in credentials}
-#         session.close()
-#         return credentials_dict
-#     except Exception as e:
-#         print("Error while fetching data from database:", e)
+
+    def input_add_user_task(self):
+        self.project_name_add_user = input("please enter project name")
+        self.task_name_add_user = input("please enter project task name")
+        self.user_add_user = input("please enter username for add")

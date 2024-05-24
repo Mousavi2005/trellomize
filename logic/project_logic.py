@@ -25,10 +25,10 @@ class project:
         self.add_project_name = None
         self.projec_id = None
         self.session = get_session()
-   
+        self.user_id = self.use.get_id_user_login()
 
     def create_project(self):
-        self.user_id = self.use.get_id_user_login()
+        # self.user_id = self.use.get_id_user_login()
         print(self.user_id)
         if self.user_id != None:
             user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))

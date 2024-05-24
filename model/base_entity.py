@@ -31,8 +31,9 @@ class TaskEntity(BaseEntity):
     leader_id = Column(BIGINT,ForeignKey('leaders.id'),nullable=True )
     leader = relationship("LeaderEntity",back_populates="tasks")
 
-    user_id = Column(BIGINT, ForeignKey('users.id'),nullable=True )
-    users = relationship("UserEntity", back_populates="tasks")
+    users = relationship("UserEntity",secondary = "usertask",back_populates="tasks")
+
+    comments = relationship("CommentEntity",back_populates='task')
 
 class ProjectEntity(BaseEntity):
     __tablename__ = "projects"
@@ -46,6 +47,7 @@ class ProjectEntity(BaseEntity):
     leaders = relationship("LeaderEntity",back_populates="project")
 
     tasks = relationship("TaskEntity",back_populates='project')
+    comments = relationship("CommentEntity",back_populates='project')
 
 class ManagerEntity(BaseEntity):
     __tablename__ = "admin"
@@ -73,26 +75,29 @@ class UserEntity(BaseEntity):
     projects = relationship("ProjectEntity",secondary = "userproject",back_populates="users")
     leaders = relationship("LeaderEntity",back_populates="user")
 
-    tasks = relationship("TaskEntity",back_populates='users')
-
+    tasks = relationship("TaskEntity",secondary = "usertask",back_populates="users")
+    comments = relationship("CommentEntity",back_populates='user')
+    
 class UserProjectEntity(BaseEntity):
     __tablename__ = "userproject"
     user_id = Column(BIGINT,ForeignKey('users.id'),nullable=False)
     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False)
 
-# class TaskEntity(BaseEntity):
-#     __tablename__ = "tasks"
+class CommentEntity(BaseEntity):
+    __tablename__ = "comments"
 
-#     task_id = Column(String, unique=True,index=True)
-#     task_name = Column(String)
-#     task_description = Column(String)
+    comment_name = Column(String)
 
+    task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False )
+    task = relationship("TaskEntity",back_populates="comments")
 
-#     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False )
-#     project = relationship("ProjectEntity",back_populates="tasks")
+    project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False )
+    project = relationship("ProjectEntity",back_populates="comments")
 
-#     leader_id = Column(BIGINT,ForeignKey('leaders.id'),nullable=False )
-#     leader = relationship("LeaderEntity",back_populates="tasks")
+    user_id = Column(BIGINT, ForeignKey('users.id'),nullable=True )
+    user = relationship("UserEntity", back_populates="comments")
 
-#     user_id = Column(BIGINT, ForeignKey('users.id'),nullable=False )
-#     users = relationship("UserEntity", back_populates="tasks")
+class UserTaskEntity(BaseEntity):
+    __tablename__ = "usertask"
+    user_id = Column(BIGINT,ForeignKey('users.id'),nullable=False)
+    task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False)
