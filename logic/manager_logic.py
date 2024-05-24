@@ -9,6 +9,8 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 import psycopg2
+from rich.console import Console
+from rich.text import Text
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 
@@ -21,47 +23,60 @@ def get_session():
 class manager:
     def __init__(self):
         self.session = get_session()
-        # self.create_admin_from_input()
 
 
     def create_admin(self,admin_name,admin_pass):
+        console = Console()
         admin = self.session.execute(select(ManagerEntity).filter_by(admin_name=admin_name))
         result_edited = admin.scalars().one_or_none()
-        print(result_edited)
+        # print(result_edited)
         if result_edited:
-            print("admin is exist")
+            text = Text("This Admin Already Has Account", style="bold red")
+            console.print(text)
+
         else:
             db_model = ManagerEntity(admin_name=admin_name,admin_pass=admin_pass)
             self.session.add(db_model)
             self.session.commit()
             self.session.refresh(db_model)
+            text = Text("Admin Created", style="bold green")
+            console.print(text)
 
-def check_banned_user(username):
-    session = get_session()  # Assuming get_session() function returns a SQLAlchemy session
 
+def check_is_user_active(username):
+
+    metadata = MetaData()
+    metadata.reflect(bind=engine, only=['users'])
+    Users = metadata.tables['users']
+    
+    session = get_session()
+    
     try:
-        # Execute a raw SQL query to fetch the password for the given username
-        query = text("SELECT is_active FROM users WHERE username = :username")
+        result = session.query(Users.c.is_active).filter(Users.c.username == username).first()
         
-        result = session.execute(query, {"username": username}).fetchone()
-
         if result:
-            situation = result[0]
-            return situation
+            return result.is_active
         else:
-            print(f"User with username '{username}' does not exist.")
-
+            return None
+        
     except Exception as e:
-        print("Error while fetching data from database:", e)
-
+        print(f"An error occurred: {e}")
+        return None
+    
     finally:
         session.close()
 
 
+<<<<<<< Updated upstream
 def ban_user():
     console = Console()
 
     username = input("Enter username: ")
+=======
+
+def ban_user(username):
+
+>>>>>>> Stashed changes
     conn = psycopg2.connect(
         dbname="trello",
         user="postgres",
@@ -81,6 +96,7 @@ def ban_user():
     cur.execute(select_query, (username,))
     row_count = cur.fetchone()[0]
     
+<<<<<<< Updated upstream
     if row_count > 0 and check_banned_user(username):
         decision = Prompt.ask('[bold red]Are you sure? (yes/no)  : [/bold red]')
         if decision == 'yes' :
@@ -90,11 +106,129 @@ def ban_user():
             console.print("[bold green]user banned successfully.[/bold green]")
         else :
             pass
+=======
+    if row_count > 0 and check_is_user_active(username):
+        update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
+        cur.execute(update_query, (isactive,username))
+        conn.commit()
+
+        return "user banned successfully"
+
+    elif row_count == 0:
+
+        return "user does not exist. you may have entered username wrong."
     else:
-        console.print("[bold red]user does not exist. you may have entered username wrong.[/bold red]")
+
+        return "user is already baned"
+        
 
     cur.close()
     conn.close()
 
 
+
+
+def activate_user(username):
+
+    conn = psycopg2.connect(
+        dbname="t2",
+        user="postgres",
+        password="foxit",
+        host="localhost",
+        port="5432"  
+    )
+
+    cur = conn.cursor()
+
+    username_to_activate = username
+    isactive = 't'
+
+
+    select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
+
+    cur.execute(select_query, (username,))
+    row_count = cur.fetchone()[0]
+    
+    if row_count > 0 and not check_is_user_active(username):
+        update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
+        cur.execute(update_query, (isactive,username))
+        conn.commit()
+
+        return "user activated successfully"
+
+    elif row_count == 0 :
+        return "user does not exist. you may have entered username wrong"
+>>>>>>> Stashed changes
+    else:
+
+        return "user is already activated!"
+
+    cur.close()
+    conn.close()
+
+
+<<<<<<< Updated upstream
+=======
+def check_deleted_user(username):
+
+    metadata = MetaData()
+    metadata.reflect(bind=engine, only=['users'])
+    Users = metadata.tables['users']
+    
+    session = get_session()
+    
+    try:
+        result = session.query(Users.c.is_deleted).filter(Users.c.username == username).first()
+        
+        if result:
+            return result.is_deleted
+        else:
+            return None
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
+    finally:
+        session.close()
+
+
+
+def delet_user(username):
+
+
+    conn = psycopg2.connect(
+        dbname="t2",
+        user="postgres",
+        password="foxit",
+        host="localhost",
+        port="5432"  
+    )
+
+    cur = conn.cursor()
+
+    username_to_activate = username
+    isdeleted = 't'
+
+
+    select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
+
+    cur.execute(select_query, (username,))
+    row_count = cur.fetchone()[0]
+    
+    if row_count > 0 and  not check_deleted_user(username):
+        update_query = "UPDATE users SET is_deleted = %s WHERE username = %s;"
+        cur.execute(update_query, (isdeleted,username))
+        conn.commit()
+
+        return "user deleted successfully"
+
+    elif row_count == 0 :
+        return "user does not exist. you may have entered username wrong"
+    else:
+        return "user is already deleted!"
+
+    cur.close()
+    conn.close()
+>>>>>>> Stashed changes
 

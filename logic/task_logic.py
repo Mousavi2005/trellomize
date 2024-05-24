@@ -36,7 +36,6 @@ class Tasks:
         self.leader_id = None
 
     def create_task(self, add_task_to_which_project, task_name, task_description):
-        # self.project_name = input("this task adds to which project?: ")
         self.project_name = add_task_to_which_project
         self.user_id = self.user.get_id_user_login() 
         project_name_exist=self.session.execute(select(
@@ -70,6 +69,8 @@ class Tasks:
             if True:
                 leader = self.session.execute(select(LeaderEntity).filter(LeaderEntity.project_id==self.project_id,LeaderEntity.user_id==self.user_id))
                 leader = leader.scalars().one_or_none()
+                if leader == None:
+                    return "You Dont Have Access To This Project"
                 self.leader_id =leader.id
                 
 
@@ -80,7 +81,6 @@ class Tasks:
                     )
                 )
                 exist_task = exist_task.scalars().one_or_none()
-                # print(exist_task)
                 if exist_task == None or exist_task == []:
                     db_model = TaskEntity(task_name=self.task_name,task_description=self.task_description,
                                           project_id=self.project_id,user_id=self.user_id,leader_id = self.leader_id)
@@ -88,7 +88,6 @@ class Tasks:
                     self.session.commit()
                     self.session.refresh(db_model)
                 else:
-                    # print("this project has this task. ")
                     return "this project has this task."
 
 

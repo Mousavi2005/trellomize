@@ -8,19 +8,83 @@ from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, S
 from logic.user_logic import user
 from logic.project_logic import project
 from logic.manager_logic import manager
+import psycopg2
+from psycopg2 import sql
+from rich.console import Console
+from rich.text import Text
+from rich.prompt import Prompt
+
+def create_admin(username, password):
+    if not username or not password:
+        print("Username and password are required to create an admin.")
+        return
+    x = manager()
+    x.create_admin(username, password)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("create-admin")
-parser.add_argument("--username")
-parser.add_argument("--password")
+def purge_data():
+    console = Console()
 
-args = parser.parse_args()
+    dbname = "t2"
+    user = "postgres"
+    password = "foxit"
+    host = "localhost"
+    port = "5432"  
+    conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
+    conn.autocommit = True
 
-# admin_name = args.username
-# admin_pass = args.password
-# print("LL")
-x = manager()
-x.create_admin(args.username,args.password)
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT tablename FROM pg_catalog.pg_tables
+            WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';
+        """)
+
+        tables = cur.fetchall()
+
+        for table in tables:
+            table_name = table[0]
+            cur.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE;")
+            text = Text(f"Dropped table {table_name}")
+            console.print(text)
+
+        text = Text("All tables droped successfully", style="bold green")
+        console.print(text)
 
 
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Admin and database management tool")
+    subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
+
+    create_admin_parser = subparsers.add_parser("create-admin", help="Create an admin user")
+    create_admin_parser.add_argument("--username", required=True, help="Admin username")
+    create_admin_parser.add_argument("--password", required=True, help="Admin password")
+
+    purge_data_parser = subparsers.add_parser("purge-data", help="Purge all data from the database")
+
+    args = parser.parse_args()
+
+    if args.command == "create-admin":
+        create_admin(args.username, args.password)
+    elif args.command == "purge-data":
+        choice = Prompt.ask("[bold red]Are you sure? (y/n)[/bold red]")
+        if choice == 'y' or 'Y':
+            purge_data()
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
