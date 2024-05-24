@@ -30,11 +30,6 @@ class UserLogic:
             if key == username:
                 k = 1
 
-<<<<<<< Updated upstream
-        # session = SessionLocal()
-        if k == 0 :
-            new_user = UserEntity(username=username, hash_password=password)
-=======
         gmail_dictionary = get_credentials_from_database_gmail('users')
         t = 0
         for key, value in gmail_dictionary.items():
@@ -45,7 +40,6 @@ class UserLogic:
         is_valid_gmail = self.is_gmail(gmail)
         if k == 0 and is_valid_gmail and t == 0:
             new_user = UserEntity(username=username, gmail=gmail , hash_password=password)
->>>>>>> Stashed changes
             try:
                 self.session.add(new_user)
                 self.session.commit()
@@ -68,14 +62,6 @@ class UserLogic:
 
 
     def login_user(self,username, password):
-<<<<<<< Updated upstream
-        # session = SessionLocal()
-        user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
-        result_edited = user.scalars().one_or_none()
-        self.id = result_edited.id
-        self.session.close()
-        return user
-=======
 
         session = get_session()
         admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == username, ManagerEntity.admin_pass == password))
@@ -99,7 +85,6 @@ class UserLogic:
             self.session.close()
             
             return True
->>>>>>> Stashed changes
 
 
 
@@ -161,8 +146,6 @@ def get_credentials_from_database_gmail(table_name):
 
        
     
-<<<<<<< Updated upstream
-=======
 
 
 
@@ -190,5 +173,4 @@ def get_is_active(username_to_check):
         session.close()
 
 
->>>>>>> Stashed changes
     

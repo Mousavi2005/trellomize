@@ -7,10 +7,7 @@ from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, S
 from logic.user_logic import UserLogic, get_credentials_from_database, get_credentials_from_database_gmail
 from logic.project_logic import project
 from logic.task_logic import Tasks
-<<<<<<< Updated upstream
-=======
 from logic.manager_logic import ban_user, activate_user, delet_user, check_deleted_user
->>>>>>> Stashed changes
 import psycopg2
 from psycopg2 import OperationalError
 import flet as ft
@@ -28,13 +25,6 @@ def get_session():
 
 
 
-<<<<<<< Updated upstream
-def main(page: ft.Page):
-    page.title = "Project Management System"
-    x = UserLogic()
-    y = project(x)
-    z = Tasks(y,x)
-=======
 # def main(page: ft.Page):
 #     page.title = "Project Management System"
 #     x = UserLogic()
@@ -121,74 +111,11 @@ def main(page: ft.Page):
 #     def admin_menu():
 #         page.clean()
 #         page.add(ft.Text("Welcome Admin!"))
->>>>>>> Stashed changes
 
 #         ban_user_button = ft.ElevatedButton(text="Ban a user", on_click=ban_user_view)
 #         activate_user_button = ft.ElevatedButton(text="Activate a user", on_click=activate_user_view)
 #         delete_user_button = ft.ElevatedButton(text="Delete a user", on_click=delete_user_view)
 
-<<<<<<< Updated upstream
-    def signup_view(e):
-        page.clean()
-        username = ft.TextField(label="Username")
-        password = ft.TextField(label="Password", password=True)
-        signup_button = ft.ElevatedButton(text="Sign Up", on_click=lambda _: signup(username.value, password.value))
-
-        page.add(ft.Column([username, password, signup_button]))
-        page.update()
-
-    def signup(username, password):
-        if x.signup_user(username, password):
-            page.session.set("user", username)
-            snackbar.content.value = "Signup successful!"
-            main_menu()
-        else:
-            snackbar.content.value = "Username already exists"
-        snackbar.open = True
-        page.snack_bar = snackbar
-        page.update()
-        # main_menu()
-
-    def login_view(e):
-        page.clean()
-        username = ft.TextField(label="Username")
-        password = ft.TextField(label="Password", password=True)
-        login_button = ft.ElevatedButton(text="Log In", on_click=lambda _: login(username.value, password.value))
-
-        page.add(ft.Column([username, password, login_button]))
-        page.update()
-        # print(x.get_id_user_login())
-
-    def login(username, password):
-        if x.login_user(username, password):
-            page.session.set("user", username)
-            main_menu()
-            # print(x.get_id_user_login())
-
-        else:
-            snackbar.content.value = "Invalid credentials"
-            snackbar.open = True
-            page.snack_bar = snackbar
-            page.update()
-
-    def main_menu():
-        page.clean()
-        user = page.session.get("user")
-        if user:
-            page.add(ft.Text(f"Welcome {user}!"))
-        else:
-            page.add(ft.Text("Welcome!"))
-        create_project_button = ft.ElevatedButton(text="Create Project", on_click=create_project_view)
-        create_task_button = ft.ElevatedButton(text="create task",on_click=create_task_view)
-        page.add(ft.Column([create_project_button]))
-        page.add(ft.Column([create_task_button]))
-        page.update()
-
-    def create_project_view(e):
-        page.clean()
-        project_name = ft.TextField(label="Project Name")
-        create_button = ft.ElevatedButton(text="Create", on_click=lambda _: create_project(project_name.value))
-=======
 #         page.add(ft.Column([ban_user_button]))
 #         page.add(ft.Column([activate_user_button]))
 #         page.add(ft.Column([delete_user_button]))
@@ -243,7 +170,6 @@ def main(page: ft.Page):
 
 #     def store_delet_resualt(username):
 #         massage = delet_user(username)
->>>>>>> Stashed changes
         
 #         snackbar.content.value = massage
 #         snackbar.open = True
@@ -326,27 +252,3 @@ def main(page: ft.Page):
 
 
 
-<<<<<<< Updated upstream
-
-
-
-
-
-
-
-
-
-    
-        #   UPDATING DATABASE CODE
-# import psycopg2
-# # Connect to the database
-# conn = psycopg2.connect(
-#     dbname="trello",
-#     user="postgres",
-#     password="foxit",
-#     host="localhost",  # Assuming your local PostgreSQL is running on localhost
-#     port="5432"  # Default PostgreSQL port
-# )
-# cursor = conn.cursor()
-=======
->>>>>>> Stashed changes

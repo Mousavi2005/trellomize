@@ -67,16 +67,9 @@ def check_is_user_active(username):
         session.close()
 
 
-<<<<<<< Updated upstream
-def ban_user():
-    console = Console()
-
-    username = input("Enter username: ")
-=======
 
 def ban_user(username):
 
->>>>>>> Stashed changes
     conn = psycopg2.connect(
         dbname="trello",
         user="postgres",
@@ -96,17 +89,6 @@ def ban_user(username):
     cur.execute(select_query, (username,))
     row_count = cur.fetchone()[0]
     
-<<<<<<< Updated upstream
-    if row_count > 0 and check_banned_user(username):
-        decision = Prompt.ask('[bold red]Are you sure? (yes/no)  : [/bold red]')
-        if decision == 'yes' :
-            update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
-            cur.execute(update_query, (isactive,username))
-            conn.commit()
-            console.print("[bold green]user banned successfully.[/bold green]")
-        else :
-            pass
-=======
     if row_count > 0 and check_is_user_active(username):
         update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
         cur.execute(update_query, (isactive,username))
@@ -158,7 +140,6 @@ def activate_user(username):
 
     elif row_count == 0 :
         return "user does not exist. you may have entered username wrong"
->>>>>>> Stashed changes
     else:
 
         return "user is already activated!"
@@ -167,8 +148,6 @@ def activate_user(username):
     conn.close()
 
 
-<<<<<<< Updated upstream
-=======
 def check_deleted_user(username):
 
     metadata = MetaData()
@@ -230,5 +209,4 @@ def delet_user(username):
 
     cur.close()
     conn.close()
->>>>>>> Stashed changes
 
