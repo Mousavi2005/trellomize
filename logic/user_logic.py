@@ -1,6 +1,6 @@
 # from ..main import get_session
 from sqlalchemy import select, text, update, MetaData, Table
-from model.base_entity import UserEntity
+from model.base_entity import UserEntity, ManagerEntity
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 import regex as re
@@ -23,18 +23,13 @@ class UserLogic:
         self.session = get_session()
 
 
-    def signup_user(self,username, password):
+    def signup_user(self,username, gmail, password):
         temdictionary = get_credentials_from_database('users')
         k = 0
         for key, value in temdictionary.items():
             if key == username:
                 k = 1
 
-<<<<<<< Updated upstream
-        # session = SessionLocal()
-        if k == 0 :
-            new_user = UserEntity(username=username, hash_password=password)
-=======
         gmail_dictionary = get_credentials_from_database_gmail('users')
         t = 0
         for key, value in gmail_dictionary.items():
@@ -45,7 +40,6 @@ class UserLogic:
         is_valid_gmail = self.is_gmail(gmail)
         if k == 0 and is_valid_gmail and t == 0:
             new_user = UserEntity(username=username, gmail=gmail , hash_password=password)
->>>>>>> Stashed changes
             try:
                 self.session.add(new_user)
                 self.session.commit()
@@ -68,14 +62,6 @@ class UserLogic:
 
 
     def login_user(self,username, password):
-<<<<<<< Updated upstream
-        # session = SessionLocal()
-        user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
-        result_edited = user.scalars().one_or_none()
-        self.id = result_edited.id
-        self.session.close()
-        return user
-=======
 
         session = get_session()
         admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == username, ManagerEntity.admin_pass == password))
@@ -99,7 +85,6 @@ class UserLogic:
             self.session.close()
             
             return True
->>>>>>> Stashed changes
 
 
 
@@ -119,9 +104,11 @@ class UserLogic:
     #     self.hash_password= input("please enter password : ")
 
     def get_id_user_login(self):
+        # print("---")
         return self.id
+        # print(self.id)
 
-    def is_gmail(email):
+    def is_gmail(self,email):
         return bool(re.match(r'^[a-zA-Z0-9_.+-]+@gmail\.com$', email))
 
 
@@ -159,10 +146,24 @@ def get_credentials_from_database_gmail(table_name):
         print("Error while fetching data from database:", e)
         return None
 
+
+def get_credentials_from_database_user_id():
+    try:
+        session = get_session()
+        credentials = session.query(UserEntity).all()
+        
+        credentials_dict = {}
+        for user in credentials:
+            credentials_dict[user.username] = user.id
+        session.close()
+        return credentials_dict
+
+    except Exception as e:
+        print("Error while fetching data from database:", e)
+        return None
+
        
     
-<<<<<<< Updated upstream
-=======
 
 
 
@@ -190,5 +191,4 @@ def get_is_active(username_to_check):
         session.close()
 
 
->>>>>>> Stashed changes
     
