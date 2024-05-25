@@ -34,7 +34,7 @@ class project:
         self.session = get_session()
    
 
-    def create_project(self,pname):
+    def create_project(self,pname: str) -> str:
         """This function takes needed argument and creates a project (a user can't have two project with the same name)"""
 
         self.user_id = self.use.get_id_user_login()
@@ -88,9 +88,7 @@ class project:
 
 
 
-
-
-    def add_user_to_project(self, uname, pname):
+    def add_user_to_project(self, uname: str, pname: str) -> str:
         """This function takes needed argumants and adds user to project"""
         self.user_id = self.use.get_id_user_login()
         self.add_username = uname
@@ -114,7 +112,7 @@ class project:
 
         if project_name_exist == None:
             logger.warning(f"leader doesn't have {pname} project")
-            # print(self.user_id)
+
             return "you don't have project with this name!"
         else:
             project_id = project_name_exist[1]
@@ -122,7 +120,7 @@ class project:
             user_exsit = user_exsit.scalars().one_or_none()
             if user_exsit == None:
                 logger.warning(f"user {uname} doesn'd have account")
-                # print("The user you want to add to your project does not exist")
+
                 return "The user you want to add to your project does not exist"
             else:
                 project_name_exist=self.session.execute(select(

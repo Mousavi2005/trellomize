@@ -31,7 +31,7 @@ class manager:
         self.session = get_session()
 
 
-    def create_admin(self,admin_name,admin_pass):
+    def create_admin(self,admin_name: str,admin_pass: str) -> None:
         """This function adds Admin to database"""
         console = Console()
         admin = self.session.execute(select(ManagerEntity).filter_by(admin_name=admin_name))
@@ -50,7 +50,7 @@ class manager:
             console.print(text)
 
 
-def check_is_user_active(username):
+def check_is_user_active(username: str) -> bool:
     """This function checks if a user is banned or not"""
 
     metadata = MetaData()
@@ -74,7 +74,7 @@ def check_is_user_active(username):
     finally:
         session.close()
 
-def ban_user(username):
+def ban_user(username: str) -> str:
     """This function takes needed argumant and bans user"""
     logger.debug(f"attempting to ban user: {username}")
     
@@ -118,7 +118,7 @@ def ban_user(username):
     cur.close()
     conn.close()
 
-def activate_user(username):
+def activate_user(username: str) -> str:
     """This function takes needed argumant and activates user"""
     logger.debug("Atemting to activate a user")
 
@@ -163,7 +163,7 @@ def activate_user(username):
     cur.close()
     conn.close()
 
-def check_deleted_user(username):
+def check_deleted_user(username: str) -> bool:
     """This function checks if a user is deleted or not"""
 
     metadata = MetaData()
@@ -187,7 +187,7 @@ def check_deleted_user(username):
     finally:
         session.close()
 
-def delet_user(username):
+def delet_user(username: str) -> str:
     """This function takes needed argumant and deletes user"""
     logger.debug("Atempting to delete a user")
 

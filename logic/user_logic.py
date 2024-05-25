@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 import regex as re
 from loguru import logger
 import bcrypt
+from typing import Union
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 logger.add(
     "file1",
@@ -28,7 +29,7 @@ class UserLogic:
         self.session = get_session()
 
 
-    def signup_user(self,username, gmail, password):
+    def signup_user(self,username: str, gmail: str, password: str) -> bool:
         """This function takes needed argumants and adds user to database"""
         temdictionary = get_credentials_from_database('users')
         k = 0
@@ -117,7 +118,7 @@ class UserLogic:
     #     finally:
     #         self.session.close()
 
-    def login_user(self,username, password):
+    def login_user(self,username: str, password: str) -> Union[bool, str]:
         """This function takes needed arguments and connects user to database (if user diesnt have account they have to signup first)"""
 
         session = get_session()
@@ -172,7 +173,7 @@ class UserLogic:
         return self.id
         # print(self.id)
 
-    def is_gmail(self,email):
+    def is_gmail(self,email: str) -> bool:
         """This functions checks if a gmail is valid or not"""
         return bool(re.match(r'^[a-zA-Z0-9_.+-]+@gmail\.com$', email))
 
@@ -195,7 +196,6 @@ def get_credentials_from_database(table_name):
         print("Error while fetching data from database:", e)
         return None
 
-
 def get_credentials_from_database_gmail(table_name):
     """This function connects to database and returns username and gmail of users in a dictionary"""
 
@@ -214,7 +214,6 @@ def get_credentials_from_database_gmail(table_name):
         print("Error while fetching data from database:", e)
         return None
 
-
 def get_credentials_from_database_user_id():
     """This function connects to database and returns username and user id of users in a dictionary"""
 
@@ -231,8 +230,6 @@ def get_credentials_from_database_user_id():
     except Exception as e:
         print("Error while fetching data from database:", e)
         return None
-
-       
 
 def get_is_active(username_to_check):
     """This function connects to database and checks if a user is banned or not"""

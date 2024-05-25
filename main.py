@@ -32,9 +32,13 @@ def get_session():
     return session
 
 def main(page: ft.Page):
-    page.clean()
     """Flet function to open a page"""
     logger.info("Openning main page")
+    page.clean()
+
+    # page.window_height = 400
+    # page.window_width = 900
+    page.window_full_screen = True
     page.title = "Project Management System"
     x = UserLogic()
     y = project(x)
@@ -47,15 +51,18 @@ def main(page: ft.Page):
         """Opens signup menu in flet"""
         logger.debug("openning signup menu")
         page.clean()
+
         username = ft.TextField(label="Username")
         gmail = ft.TextField(label="Gmail")
         password = ft.TextField(label="Password", password=True)
-        signup_button = ft.ElevatedButton(text="Sign Up", on_click=lambda _: signup(username.value, gmail.value, password.value))
 
-        page.add(ft.Column([username, gmail, password, signup_button]))
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=lambda _: reset_to_main())
+        signup_button = ft.ElevatedButton(content=ft.Text("Sign up",size=20), on_click=lambda _: signup(username.value, gmail.value, password.value), width=130, height=40)
+
+        page.add(ft.Column([back_button, username, gmail, password, signup_button]))
         page.update()
 
-    def signup(username, gmail, password):
+    def signup(username: str, gmail: str, password: str) -> None:
         """This finctions takes needed arguments and adds user to database (username and gmail must be unique and valid)"""
         logger.debug(f"Attempting to sign up user: {username}")
 
@@ -82,13 +89,15 @@ def main(page: ft.Page):
         page.clean()
         username = ft.TextField(label="Username")
         password = ft.TextField(label="Password", password=True)
-        login_button = ft.ElevatedButton(text="Log In", on_click=lambda _: login(username.value, password.value))
 
-        page.add(ft.Column([username, password, login_button]))
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=lambda _: reset_to_main())
+        login_button = ft.ElevatedButton(content=ft.Text("Login",size=20), on_click=lambda _: login(username.value, password.value),width=120, height=40)
+
+        page.add(ft.Column([back_button, username, password, login_button]))
         page.update()
         # print(x.get_id_user_login())
 
-    def login(username, password):
+    def login(username: str, password: str) -> None:
         """This function takes needed arguments and connects user to database (if user diesnt have account they have to signup first)"""
         logger.debug(f"Attempting to login user: {username}")
 
@@ -118,27 +127,52 @@ def main(page: ft.Page):
     def main_menu():
         """This function opens the main menu in flet"""
         logger.debug("Opening main menu")
+
         page.clean()
         user = page.session.get("user")
         if user:
-            page.add(ft.Text(f"Welcome {user}!"))
+            # page.add(ft.Text(f"Welcome {user}!"))
+            # page.add(ft.Row([ft.Text(f"Welcome {user}!", size=35)],alignment='center'))
+            page.add(
+                ft.Text(
+                    spans=[
+                        ft.TextSpan(
+                            f"Welcome {user}!",
+                            ft.TextStyle(
+                                size=40,
+                                weight=ft.FontWeight.BOLD,
+                                foreground=ft.Paint(
+                                    gradient=ft.PaintLinearGradient(
+                                        (0, 20), (150, 20), [ft.colors.RED, ft.colors.YELLOW]
+                                    )
+                                ),
+                            ),
+                        ),
+                    ],
+                )
+            )
+
+
         else:
             page.add(ft.Text("Welcome!"))
 
         # back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=signout_view)
-        create_project_button = ft.ElevatedButton(text="Create Project", on_click=create_project_view)
-        create_task_button = ft.ElevatedButton(text="Create Task",on_click=create_task_view)
-        add_user_to_project_button = ft.ElevatedButton(text="Add User To Project",on_click=add_user_to_project_view)
-        add_comment_to_task_button = ft.ElevatedButton(text="Add Comment To Task",on_click=add_comment_to_task_view)
-        add_user_to_task_button = ft.ElevatedButton(text="Add User To Task", on_click=add_user_to_task_view)
-        sighn_out_button = ft.ElevatedButton(text="Sign out", on_click= signout_view)
 
-        page.add(ft.Column([create_project_button]))
-        page.add(ft.Column([create_task_button]))
-        page.add(ft.Column([add_user_to_project_button]))
-        page.add(ft.Column([add_comment_to_task_button]))
-        page.add(ft.Column([add_user_to_task_button]))
-        page.add(ft.Column([sighn_out_button]))
+        create_project_button = ft.ElevatedButton(content=ft.Text("create project",size=35),on_click=create_project_view, width=340,height=150, color= ft.colors.BLUE)
+        create_task_button = ft.ElevatedButton(content=ft.Text("create task",size=35),on_click=create_task_view, width=340,height=150, color= ft.colors.BLUE)
+
+        add_user_to_project_button = ft.ElevatedButton(content=ft.Text("Add User To Project",size=30),on_click=add_user_to_project_view, width=340,height=150, color=ft.colors.GREEN)
+        add_comment_to_task_button = ft.ElevatedButton(content=ft.Text("Add Comment To Task",size=30),on_click=add_comment_to_task_view, width=370,height=150, color=ft.colors.GREEN)
+        add_user_to_task_button = ft.ElevatedButton(content=ft.Text("Add User To Task",size=30), on_click=add_user_to_task_view, width=340,height=150, color=ft.colors.GREEN)
+
+        sighn_out_button = ft.ElevatedButton(content=ft.Text("sign out",size=35), on_click= signout_view, width=340,height=150, color=ft.colors.RED)
+
+        page.add(ft.Row([create_project_button, create_task_button],alignment="center"))
+        # page.add(ft.Column([create_task_button]))
+        page.add(ft.Row([add_user_to_project_button, add_comment_to_task_button, add_user_to_task_button],alignment="center"))
+        # page.add(ft.Column([add_comment_to_task_button]))
+        # page.add(ft.Column([add_user_to_task_button]))
+        page.add(ft.Row([sighn_out_button],alignment="center"))
         # page.add(ft.Column([back_button]))
         page.update()
     
@@ -176,7 +210,7 @@ def main(page: ft.Page):
         page.add(ft.Column([username, ban_button]))
         page.update()
 
-    def store_ban_result(username):
+    def store_ban_result(username: str) -> None:
         """This function takes needed argumant and bans user"""
         # logger.debug(f"attempting to ban user: {username}")
         massage = ban_user(username)
@@ -200,7 +234,7 @@ def main(page: ft.Page):
         page.add(ft.Column([username, activate_button]))
         page.update()
 
-    def store_activate_result(username):
+    def store_activate_result(username: str) -> None:
         """This function takes needed argumant and activates user"""
         massage = activate_user(username)
 
@@ -221,7 +255,7 @@ def main(page: ft.Page):
         page.add(ft.Column([username, activate_button]))
         page.update()
 
-    def store_delet_resualt(username):
+    def store_delet_resualt(username: str) -> None:
         """This function takes needed argumant and delets user"""
         massage = delet_user(username)
         
@@ -240,13 +274,13 @@ def main(page: ft.Page):
         # logger.info("Create 'crete project' menu button")
 
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        create_button = ft.ElevatedButton(text="Create", on_click=lambda _: create_project(project_name.value))
+        create_button = ft.ElevatedButton(content=ft.Text("Create",size=20), on_click=lambda _: create_project(project_name.value),width=120, height=40)
         
         page.add(ft.Column([back_button,project_name, create_button]))
         # page.add(ft.Column([back_button, create_button]))
         page.update()
 
-    def create_project(project_name):
+    def create_project(project_name: str) -> None:
         """This function takes needed argumant and creates projects. (a username can't have two project with the same name)"""
         logger.debug("Atempting to creat project")
         user = page.session.get("user")
@@ -268,12 +302,12 @@ def main(page: ft.Page):
         task_description = ft.TextField(label="Task Description")
         
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        create_button = ft.ElevatedButton(text="Create", on_click=lambda _: create_task(add_task_to_which_project.value, task_name.value, task_description.value))
+        create_button = ft.ElevatedButton(content=ft.Text("Create",size=20), on_click=lambda _: create_task(add_task_to_which_project.value, task_name.value, task_description.value),width=120, height=40)
         
         page.add(ft.Column([back_button,add_task_to_which_project, task_name, task_description, create_button]))
         page.update()
 
-    def create_task(add_task_to_which_project,task_name, task_description):
+    def create_task(add_task_to_which_project: str,task_name: str, task_description: str) -> None:
         """This function takes needed argumants and creates tasks. (a project can't have two task with the same name)"""
         logger.debug("Atempting to crate a task")
 
@@ -295,13 +329,13 @@ def main(page: ft.Page):
         project_name_for_adding_user = ft.TextField(label="Project Name For Adding User To")
 
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        add_button = ft.ElevatedButton(text="Add", on_click=lambda _: add_user_to_project(username_for_adding_to_project.value,project_name_for_adding_user.value))
+        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_project(username_for_adding_to_project.value,project_name_for_adding_user.value),width=120, height=40)
 
  
         page.add(ft.Column([back_button,username_for_adding_to_project, project_name_for_adding_user, add_button]))
         page.update()
 
-    def add_user_to_project(uname, pname):
+    def add_user_to_project(uname: str, pname: str) -> None:
         """This function takes needed argumants and adds user to project."""
         logger.debug("Attemting to add  user to project")
         
@@ -326,12 +360,12 @@ def main(page: ft.Page):
         comment = ft.TextField(label="Your Comment")
 
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        add_comment_button = ft.ElevatedButton(text="Add", on_click=lambda _: add_comment_to_task(pname.value, tname.value, comment.value))
+        add_comment_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_comment_to_task(pname.value, tname.value, comment.value),width=120, height=40)
 
         page.add(ft.Column([back_button,pname, tname, comment, add_comment_button]))
         page.update()
 
-    def add_comment_to_task(pname, tname, comment):
+    def add_comment_to_task(pname: str, tname: str, comment: str) -> None:
         """This function takes needed argumants and adds comment to task."""
         logger.debug("Attemptin to add comment to task")
 
@@ -354,12 +388,12 @@ def main(page: ft.Page):
         uname = ft.TextField(label="Username You Want To Add")
 
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        add_button = ft.ElevatedButton(text="Add", on_click=lambda _: add_user_to_task(pname.value, tname.value, uname.value))
+        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_task(pname.value, tname.value, uname.value),width=120, height=40)
         
         page.add(ft.Column([back_button,pname, tname, uname, add_button]))
         page.update()
 
-    def add_user_to_task(pname, tname, uname):
+    def add_user_to_task(pname: str, tname: str, uname: str) -> None:
         """This function takes needed argumants and adds task to user."""
         logger.debug("Attempting to add user to task")
 
@@ -377,14 +411,37 @@ def main(page: ft.Page):
         logger.debug("Attempting to signout")
         page.clean()
 
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
-        signout_button = ft.ElevatedButton(text="Continue?", on_click=lambda _: signout())
+        # back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
+        left_text = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back)
+        center_container = ft.Text("Do you want to signout?", size=35)
 
-        page.add(ft.Column([back_button,signout_button]))
+        row = ft.Row(
+        [
+            left_text,     # Left-aligned text
+            center_container  # Center-aligned text within its container
+        ],
+        alignment=ft.MainAxisAlignment.START , # Align items in the row to the start (left)
+        spacing= 520
+        ) 
+        signout_button = ft.Row([ft.ElevatedButton(content=ft.Text("Continue",size=30), on_click=lambda _: signout(),width=340, height=150)], alignment='center')
+
+        resualt = ft.Column(
+            [
+                row,
+                signout_button
+            ],
+            spacing=200,
+        )
+        page.add(resualt)
         page.update()
     
     def signout():
         logger.debug("Attemptong to signout")
+
+        snackbar.content.value = "Signout successfully"
+        snackbar.open = True
+        page.snack_bar = snackbar
+
         reset_to_main()
 
     def reset_to_main():
@@ -394,12 +451,38 @@ def main(page: ft.Page):
         page.session.set("view_history", [])
         main(page)
 
+    def close_window(e):
+        page.window_close()
     # Initial View
-    page.add(ft.Column([
-        ft.Text("Welcome to Project Management System"),
-        ft.ElevatedButton(text="Sign Up", on_click=signup_view),
-        ft.ElevatedButton(text="Log In", on_click=login_view),
-    ]))
+    # page.add(ft.Row([ft.Text("Welcome to Project Management System")], alignment='center'))
+    # page.add(ft.Row([ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=close_window)]))
+    left_text = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=close_window)
+    center_container = ft.Text("Welcome to Project Management System", size=35)
+    row = ft.Row(
+        [
+            left_text,     # Left-aligned text
+            center_container  # Center-aligned text within its container
+        ],
+        alignment=ft.MainAxisAlignment.START , # Align items in the row to the start (left)
+        spacing= 420
+    )
+    # page.add(row)
+    row2 = ft.Row([
+        # ft.Text("Welcome to Project Management System"),
+        # ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=close_window),
+        ft.ElevatedButton(content=ft.Text("Sign up",size=40), on_click=signup_view, width=340,height=150, color= ft.colors.BLUE),
+        ft.ElevatedButton(content=ft.Text("Login",size=40), on_click=login_view, width=340,height=150, color= ft.colors.BLUE),
+    ], alignment='center',spacing=200)
+
+    resualt = ft.Column(
+        [
+            row,
+            row2
+        ],
+        spacing=300
+    )
+    page.add(resualt)
+
     page.update()
 
 ft.app(target=main)

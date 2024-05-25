@@ -129,7 +129,7 @@ class Tasks:
 
 
 
-    def create_task(self, add_task_to_which_project, task_name, task_description):
+    def create_task(self, add_task_to_which_project: str, task_name: str, task_description: str) -> str:
         """This function takes needed argumants and creates tasks. (a project can't have two task with the same name)"""
 
         self.user_id = self.user.get_id_user_login() 
@@ -190,7 +190,7 @@ class Tasks:
 
                     return "this project has this task"
 
-    def add_comment_to_task(self, project_name_add_comment, task_name_add_comment, comment):
+    def add_comment_to_task(self, project_name_add_comment: str, task_name_add_comment: str, comment: str) -> str:
         """This function takes needed argumants and adds comment to task."""
 
         self.user_id=self.user.get_id_user_login()
@@ -236,7 +236,7 @@ class Tasks:
                 self.session.refresh(comment)
                 return "Comment Added succesfully"
 
-    def add_user_to_task(self, pname, tname, uname):
+    def add_user_to_task(self, pname: str, tname: str, uname: str) -> str:
         """This function takes needed argumants and adds task to user."""
 
         self.user_id=self.user.get_id_user_login()
@@ -265,7 +265,7 @@ class Tasks:
 
         if project_name_exist==None:
             logger.warning(f"leader doesn't have {pname} project")
-            # print("you have not project with this name!")
+
             return "you dont have project with this name!"
         else:
             project_id = project_name_exist[1]
@@ -273,7 +273,7 @@ class Tasks:
             task=task.scalars().one_or_none()
             if task==None:
                 logger.warning(f"{pname} project doesn't have {tname} task")
-                # print("this task dose not exist in this project")
+
                 return "This Project Doesn't Have This Task"
             else:
 
@@ -281,8 +281,7 @@ class Tasks:
                 user_exsit = user_exsit.scalars().one_or_none()
                 if user_exsit == None:
                     logger.warning(f"{uname} user doesn't have account")
-                    # print("The user you want to add to your project does not exist")
-                    # return "The user you want to add to your project does not exist"
+
                     return "This user dosnt have account"
                 else:
                     user_in_task_exist=self.session.execute(select(
@@ -314,7 +313,7 @@ class Tasks:
 
                     if user_in_task_exist!= None:
                         logger.warning(f"{uname} user has already been added to {tname} task")
-                        # print("The user has already been added to your task")
+
                         return "This user has already been added to your task"
                     else:
                         logger.success(f"{uname} user added to {tname} task successfuly")
