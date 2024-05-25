@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 import regex as re
 
 
-engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
     Session = sessionmaker(bind=engine)

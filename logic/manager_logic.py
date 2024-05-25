@@ -12,7 +12,7 @@ import psycopg2
 from rich.console import Console
 from rich.text import Text
 
-engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
     Session = sessionmaker(bind=engine)

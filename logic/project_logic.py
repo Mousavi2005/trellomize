@@ -9,7 +9,7 @@ from rich.table import Table
 import psycopg2
 from logic.user_logic import UserLogic
 from model.base_entity import UserEntity,UserProjectEntity,LeaderEntity
-engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
     Session = sessionmaker(bind=engine)

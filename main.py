@@ -15,7 +15,7 @@ from rich.console import Console
 from logic.project_logic import project
 
 
-engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 Base.metadata.create_all(engine)
 
 def get_session():
