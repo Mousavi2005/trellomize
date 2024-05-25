@@ -11,8 +11,14 @@ from rich.table import Table
 import psycopg2
 from rich.console import Console
 from rich.text import Text
+from loguru import logger
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+logger.add(
+    "file1",
+    format="{time} {level} {message}",
+    rotation="1 MB"
+)
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -26,6 +32,7 @@ class manager:
 
 
     def create_admin(self,admin_name,admin_pass):
+        """This function adds Admin to database"""
         console = Console()
         admin = self.session.execute(select(ManagerEntity).filter_by(admin_name=admin_name))
         result_edited = admin.scalars().one_or_none()
@@ -44,6 +51,7 @@ class manager:
 
 
 def check_is_user_active(username):
+    """This function checks if a user is banned or not"""
 
     metadata = MetaData()
     metadata.reflect(bind=engine, only=['users'])
@@ -66,9 +74,10 @@ def check_is_user_active(username):
     finally:
         session.close()
 
-
-
 def ban_user(username):
+    """This function takes needed argumant and bans user"""
+    logger.debug(f"attempting to ban user: {username}")
+    
 
     conn = psycopg2.connect(
         dbname="t2",
@@ -93,13 +102,15 @@ def ban_user(username):
         update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
         cur.execute(update_query, (isactive,username))
         conn.commit()
-
+        logger.success(f"user: {username} banned successfuly")
         return "user banned successfully"
 
     elif row_count == 0:
+        logger.warning(f"user: {username} doesn't have account")
 
         return "user does not exist. you may have entered username wrong."
     else:
+        logger.warning(f"user: {username} is already banned")
 
         return "user is already baned"
         
@@ -107,10 +118,10 @@ def ban_user(username):
     cur.close()
     conn.close()
 
-
-
-
 def activate_user(username):
+    """This function takes needed argumant and activates user"""
+    logger.debug("Atemting to activate a user")
+
 
     conn = psycopg2.connect(
         dbname="t2",
@@ -132,6 +143,8 @@ def activate_user(username):
     row_count = cur.fetchone()[0]
     
     if row_count > 0 and not check_is_user_active(username):
+        logger.success(f"user: {username} activates successfuly")
+
         update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
         cur.execute(update_query, (isactive,username))
         conn.commit()
@@ -139,16 +152,19 @@ def activate_user(username):
         return "user activated successfully"
 
     elif row_count == 0 :
+        logger.warning(f"user: {username} doesn't have account")
+
         return "user does not exist. you may have entered username wrong"
     else:
+        logger.warning(f"user: {username} is already active")
 
         return "user is already activated!"
 
     cur.close()
     conn.close()
 
-
 def check_deleted_user(username):
+    """This function checks if a user is deleted or not"""
 
     metadata = MetaData()
     metadata.reflect(bind=engine, only=['users'])
@@ -171,9 +187,9 @@ def check_deleted_user(username):
     finally:
         session.close()
 
-
-
 def delet_user(username):
+    """This function takes needed argumant and deletes user"""
+    logger.debug("Atempting to delete a user")
 
 
     conn = psycopg2.connect(
@@ -196,6 +212,8 @@ def delet_user(username):
     row_count = cur.fetchone()[0]
     
     if row_count > 0 and  not check_deleted_user(username):
+        logger.success(f"user: {username} deleted successfuly")
+
         update_query = "UPDATE users SET is_deleted = %s WHERE username = %s;"
         cur.execute(update_query, (isdeleted,username))
         conn.commit()
@@ -203,8 +221,12 @@ def delet_user(username):
         return "user deleted successfully"
 
     elif row_count == 0 :
+        logger.warning(f"user: {username} doesn't have account!")
+
         return "user does not exist. you may have entered username wrong"
     else:
+        logger.warning(f"user: {username} is already deleted!")
+        
         return "user is already deleted!"
 
     cur.close()

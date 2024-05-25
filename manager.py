@@ -15,6 +15,7 @@ from rich.text import Text
 from rich.prompt import Prompt
 
 def create_admin(username, password):
+    """This function adds Admin to database"""
     if not username or not password:
         print("Username and password are required to create an admin.")
         return
@@ -23,6 +24,7 @@ def create_admin(username, password):
 
 
 def purge_data():
+    """This function clears all data in database"""
     console = Console()
 
     dbname = "t2"
@@ -61,9 +63,8 @@ def purge_data():
         cur.close()
         conn.close()
 
-
-
 def main():
+    """This function takes argumants in a terminal command .Based on command creates 'Admin' or deletes 'database'"""
     parser = argparse.ArgumentParser(description="Admin and database management tool")
     subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
 
