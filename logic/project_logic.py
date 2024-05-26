@@ -1,5 +1,5 @@
 from sqlalchemy import select ,and_
-from model.base_entity import ProjectEntity
+from model.base_entity import ProjectEntity, TaskEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, table
 # from logic.user_logic import get_credentials_from_database
@@ -155,6 +155,38 @@ class project:
                     return "User Added to project succesfully"
 
     
+    def list_tasks(self, pname):
+        self.user_id = self.use.get_id_user_login()
+        self.project_name_list = pname
+
+        project_name_exist = self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+        if project_name_exist == None:
+            return False
+        else:
+            project_id = project_name_exist[1]
+            tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
+            tasks = tasks.scalars().all()
+
+            # for task in tasks:
+            return tasks
+            # print(task.task_name)
+
+
     # def input_for_add_project(self):
         # self.add_username = input("Which user to add to your project (username)?")
         # self.add_project_name = input("The name of the project you want the user to be added to?")

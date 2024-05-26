@@ -151,6 +151,25 @@ class UserLogic:
             return True
 
 
+    def list_projects(self):
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        if len(user.projects)==0:
+            return False
+            # print("dose not exist any project")
+        else:
+            return user.projects
+
+    def list_tasks(self):
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        if len(user.tasks)==0:
+            return False
+            print("dose not exist any task")
+        else:
+            return user.tasks
+
+
 
     # def signout(self):
     #     """This function signs out the user"""
