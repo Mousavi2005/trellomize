@@ -72,6 +72,23 @@ class UserLogic:
     def get_id_user_login(self):
         return self.id
 
+    def list_tasks(self):
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        if len(user.tasks)==0:
+            print("dose not exist any task")
+        else:
+            for task in user.tasks:
+                print(task.task_name)
+
+    def list_projects(self):
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        if len(user.projects)==0:
+            print("dose not exist any project")
+        else:
+            for task in user.projects:
+                print(task.project_name)
 
 def get_credentials_from_database(table_name):
     try:
@@ -85,6 +102,8 @@ def get_credentials_from_database(table_name):
     except Exception as e:
         print("Error while fetching data from database:", e)
 
+
+    
 # def get_user_credentials():
 #     try:
 #         # Create engine and session

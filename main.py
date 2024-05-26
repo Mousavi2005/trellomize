@@ -17,6 +17,8 @@ Base.metadata.create_all(engine)
 x=UserLogic()
 # x.signup_user()
 x.signin_user()
+x.list_tasks()
+x.list_projects()
 
 
 y = project(x)
@@ -25,7 +27,8 @@ z = Tasks(y,x)
 # z.create_task()
 # z.add_comment_to_task()
 # y.add_user_to_project()
-z.add_user_to_task()
+# z.add_user_to_task()
+
 def get_session():
     Session = sessionmaker(bind=engine)
     session = Session()
