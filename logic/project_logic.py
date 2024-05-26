@@ -38,6 +38,7 @@ class project:
         """This function takes needed argument and creates a project (a user can't have two project with the same name)"""
 
         self.user_id = self.use.get_id_user_login()
+        print(self.user_id)
         if self.user_id != None:
             user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
             user = user.scalars().one_or_none()
@@ -66,6 +67,7 @@ class project:
                 return "this project_name is exist"
 
             logger.success("Project created successfuly")
+
             model_project = ProjectEntity(project_name=self.project_name, username=user.username, hash_password=user.hash_password, first_name=user.first_name, last_name=user.last_name)
             model_leader = LeaderEntity()
             user.projects.append(model_project)
@@ -84,9 +86,8 @@ class project:
             
         else:
             logger.critical("We don't have users id")
+            
             print("not authentication. you should login or signup")
-
-
 
     def add_user_to_project(self, uname: str, pname: str) -> str:
         """This function takes needed argumants and adds user to project"""
@@ -155,7 +156,7 @@ class project:
                     return "User Added to project succesfully"
 
     
-    def list_tasks(self, pname):
+    # def list_tasks(self, pname):
         self.user_id = self.use.get_id_user_login()
         self.project_name_list = pname
 
@@ -175,6 +176,7 @@ class project:
             UserProjectEntity.user_id==self.user_id
         ))
         project_name_exist = project_name_exist.fetchone()
+
         if project_name_exist == None:
             return False
         else:
@@ -182,10 +184,96 @@ class project:
             tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
             tasks = tasks.scalars().all()
 
-            # for task in tasks:
             return tasks
-            # print(task.task_name)
 
+
+
+    def list_tasks(self, pname):
+        """This function shows list of project tasks"""
+        self.user_id = self.use.get_id_user_login()
+        self.project_name_list = pname
+
+        project_name_exist = self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            UserProjectEntity.user_id == self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+
+        if project_name_exist is None:
+            logger.warning("This project doesn't exist!")
+            return False
+        else:
+            project_id = project_name_exist[1]
+
+            tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
+            tasks = tasks.scalars().all()
+
+            tasks_data = [
+                {
+                    # 'id': task.id,
+                    task.task_name,
+                }
+                for task in tasks
+            ]
+            logger.success("list of project task showed successfuly")
+            return tasks_data
+
+
+    def list_users(self, pname):
+        self.user_id = self.use.get_id_user_login()
+
+        self.project_name_list = pname
+
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+
+        if project_name_exist!= None:
+            project_id = project_name_exist[1]
+            project = self.session.execute(select(TaskEntity).filter_by(id=project_id))
+            project = project.scalars().one_or_none()
+            users = project.users
+
+
+            # for user in users:
+            #     print(user.username)
+
+            tasks_data = [
+                {
+                    user.username,
+                }
+                for user in users
+            ]
+
+            logger.success("list of project task showed successfuly")
+            return tasks_data
+            
+        else:
+            print("project dose not have any users")
 
     # def input_for_add_project(self):
         # self.add_username = input("Which user to add to your project (username)?")

@@ -76,9 +76,7 @@ def check_is_user_active(username: str) -> bool:
 
 def ban_user(username: str) -> str:
     """This function takes needed argumant and bans user"""
-    logger.debug(f"attempting to ban user: {username}")
     
-
     conn = psycopg2.connect(
         dbname="t2",
         user="postgres",
@@ -120,7 +118,6 @@ def ban_user(username: str) -> str:
 
 def activate_user(username: str) -> str:
     """This function takes needed argumant and activates user"""
-    logger.debug("Atemting to activate a user")
 
 
     conn = psycopg2.connect(
@@ -189,8 +186,6 @@ def check_deleted_user(username: str) -> bool:
 
 def delet_user(username: str) -> str:
     """This function takes needed argumant and deletes user"""
-    logger.debug("Atempting to delete a user")
-
 
     conn = psycopg2.connect(
         dbname="t2",

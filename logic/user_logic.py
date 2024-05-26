@@ -7,6 +7,8 @@ import regex as re
 from loguru import logger
 import bcrypt
 from typing import Union
+import copy
+
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 logger.add(
     "file1",
@@ -29,147 +31,152 @@ class UserLogic:
         self.session = get_session()
 
 
-    def signup_user(self,username: str, gmail: str, password: str) -> bool:
-        """This function takes needed argumants and adds user to database"""
-        temdictionary = get_credentials_from_database('users')
-        k = 0
-        for key, value in temdictionary.items():
-            if key == username:
-                k = 1
 
-        gmail_dictionary = get_credentials_from_database_gmail('users')
-        t = 0
-        for key, value in gmail_dictionary.items():
-            if value == gmail:
-                t = 1
+    def signup_user(self, username: str, gmail: str, password: str) -> bool:
+        """This function takes needed arguments and adds user to the database"""
         
-        is_valid_gmail = self.is_gmail(gmail)
+        existing_user = self.session.query(UserEntity).filter(UserEntity.username == username).first()
+        # user = self.session.execute(select(UserEntity).where(UserEntity.username == username)).scalars().one_or_none()
 
-        if k == 0 and is_valid_gmail and t == 0:
-            new_user = UserEntity(username=username, gmail=gmail , hash_password=password)
-            try:
-                logger.success(f"{username} user signed up successfuly")
-                self.session.add(new_user)
-                self.session.commit()
-                user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
-                result_edited = user.scalars().one_or_none()
-                self.id = result_edited.id
-
-
-                return True
-            except InterruptedError:
-                logger.critical(f"error occured while signing up {username} user")
-
-                self.session.rollback()
-                # print("error!")
-                return False
-            finally:
-                self.session.close()
-                return True
-
-        elif not is_valid_gmail:
-            logger.warning(f"{gmail} is not a valid gmail")
-
-            return "NVG"
-        
-        elif t == 1 :
-            logger.warning(f"{gmail} has an account")
-            return "UG"
-
-        else : 
-            logger.warning(f"{username} username has account")
+        if existing_user:
+            logger.warning(f"Username '{username}' is already taken.")
             return False
 
-    # def signup_user(self, username, gmail, password):
-    #     """This function takes needed arguments and adds user to database"""
-    #     # Check if the username already exists
-    #     existing_user = self.session.query(UserEntity).filter(UserEntity.username == username).first()
-    #     if existing_user:
-    #         logger.warning(f"Username '{username}' is already taken.")
-    #         return False
+        existing_email = self.session.query(UserEntity).filter(UserEntity.gmail == gmail).first()
+        if existing_email:
+            logger.warning(f"Email '{gmail}' is already registered.")
+            return False
 
-    #     # Check if the email already exists
-    #     existing_email = self.session.query(UserEntity).filter(UserEntity.gmail == gmail).first()
-    #     if existing_email:
-    #         logger.warning(f"Email '{gmail}' is already registered.")
-    #         return False
 
-    #     # Check if the email is valid
-    #     if not self.is_gmail(gmail):
-    #         logger.warning(f"Email '{gmail}' is not valid.")
-    #         return False
+        if not self.is_gmail(gmail):
+            logger.warning(f"Email '{gmail}' is not valid.")
+            return False
 
-    #     # Hash the password
-    #     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    #     # Create a new user entity
-    #     new_user = UserEntity(username=username, gmail=gmail, hash_password=hashed_password)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+        new_user = UserEntity(username=username, gmail=gmail, hash_password=hashed_password)
+
+        try:
+
+            self.session.add(new_user)
+            self.session.commit()
+            existing_user = self.session.query(UserEntity).filter(UserEntity.username == username).first()
+            self.id = existing_user.id
+            # self.user_id = self.get_id_user_login()
+            logger.success(f"{username} user signed up successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Error occurred while signing up {username} user: {e}")
+            self.session.rollback()
+            return False
+        finally:
+            self.session.close()
+
+
+    # def login_user(self,username: str, password: str) -> Union[bool, str]:
+    #     """This function takes needed arguments and connects user to database (if user diesnt have account they have to signup first)"""
+
+    #     session = get_session()
+    #     admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == username, ManagerEntity.admin_pass == password))
+    #     result_edited = admin.scalars().one_or_none()
         
-    #     # Add the new user to the session and commit changes
-    #     try:
-    #         self.session.add(new_user)
-    #         self.session.commit()
-    #         logger.success(f"{username} user signed up successfully")
-    #         return True
-    #     except Exception as e:
-    #         logger.error(f"Error occurred while signing up {username} user: {e}")
-    #         self.session.rollback()
-    #         return False
-    #     finally:
-    #         self.session.close()
+    #     if result_edited != None :
+    #         logger.success(f"{username} username loged in as Admin successfuly")
+    #         return "Admin"
 
-    def login_user(self,username: str, password: str) -> Union[bool, str]:
-        """This function takes needed arguments and connects user to database (if user diesnt have account they have to signup first)"""
+    #     temp_active = get_is_active(username)
+    #     user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
+    #     result_edited = user.scalars().one_or_none()
+
+    #     if result_edited == None :
+    #         logger.warning(f"username : {username} and password: {password} are not match!")
+
+    #         return False
+
+    #     elif not temp_active:
+    #         logger.warning(f"{username} username is banned")
+    #         return "NA"
+
+    #     else:
+    #         logger.success(f"{username} user logged in successfuly")
+    #         # result_edited = user.scalars().one_or_none()
+    #         self.id = result_edited.id
+    #         self.session.close()
+            
+    #         return True
+
+    def login_user(self, username: str, password: str) -> Union[bool, str]:
+        """This function takes needed arguments and connects user to the database (if user doesn't have account they have to signup first)"""
 
         session = get_session()
-        admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == username, ManagerEntity.admin_pass == password))
-        result_edited = admin.scalars().one_or_none()
+        admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == username)).scalars().one_or_none()
         
-        if result_edited != None :
-            logger.success(f"{username} username loged in as Admin successfuly")
+        if admin and bcrypt.checkpw(password.encode('utf-8'), admin.admin_pass.encode('utf-8')):
+            logger.success(f"{username} username logged in as Admin successfully")
             return "Admin"
 
         temp_active = get_is_active(username)
-        user = self.session.execute(select(UserEntity).where(UserEntity.username == username, UserEntity.hash_password == password))
-        result_edited = user.scalars().one_or_none()
+        user = self.session.execute(select(UserEntity).where(UserEntity.username == username)).scalars().one_or_none()
 
-        if result_edited == None :
-            logger.warning(f"username : {username} and password: {password} are not match!")
-
+        if user is None or not bcrypt.checkpw(password.encode('utf-8'), user.hash_password.encode('utf-8')):
+            logger.warning(f"username : {username} and password: {password} do not match!")
             return False
 
-        elif not temp_active:
+        if not temp_active:
             logger.warning(f"{username} username is banned")
             return "NA"
 
-        else:
-            logger.success(f"{username} user logged in successfuly")
-            # result_edited = user.scalars().one_or_none()
-            self.id = result_edited.id
-            self.session.close()
-            
-            return True
-
+        logger.success(f"{username} user logged in successfully")
+        self.id = user.id
+        self.session.close()
+        return True
 
     def list_projects(self):
-        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
-        user = user.scalars().one_or_none()
-        if len(user.projects)==0:
+        """This function shows a list of projects that user is in them (added to them)"""
+
+        result = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = result.scalars().one_or_none()
+
+        if user is None:
+            logger.warning("User isn't in any project")
             return False
-            # print("dose not exist any project")
-        else:
-            return user.projects
+
+        if not hasattr(user, 'projects') or len(user.projects) == 0:
+            return False
+
+        projects_data = [
+            {
+                project.project_name,
+            }
+            for project in user.projects
+        ]
+
+        logger.success("User saw projects he's added to")
+        return projects_data
 
     def list_tasks(self):
-        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
-        user = user.scalars().one_or_none()
-        if len(user.tasks)==0:
+        """This function shows a list of tasks that user is in them (added to them)"""
+
+        result = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = result.scalars().one_or_none()
+
+        if user is None:
+            logger.warning("User isn't in any task")
             return False
-            print("dose not exist any task")
-        else:
-            return user.tasks
 
+        if not hasattr(user, 'tasks') or len(user.tasks) == 0:
+            return False
 
+        tasks_data = [
+            {
+                task.task_name,
+            }
+            for task in user.tasks
+        ]
+        logger.success("User saw tasks he's added to")
+        return tasks_data
 
     # def signout(self):
     #     """This function signs out the user"""
@@ -275,5 +282,57 @@ def get_is_active(username_to_check):
         # Close the session
         session.close()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def signup_user(self, username, gmail, password):
+        """This function takes needed arguments and adds user to database"""
+        # Check if the username already exists
+        # existing_user = self.session.query(UserEntity).filter(UserEntity.username == username).first()
+        # if existing_user:
+        #     logger.warning(f"Username '{username}' is already taken.")
+        #     return False
+
+        # # Check if the email already exists
+        # existing_email = self.session.query(UserEntity).filter(UserEntity.gmail == gmail).first()
+        # if existing_email:
+        #     logger.warning(f"Email '{gmail}' is already registered.")
+        #     return False
+
+        # # Check if the email is valid
+        # if not self.is_gmail(gmail):
+        #     logger.warning(f"Email '{gmail}' is not valid.")
+        #     return False
+
+        # # Hash the password
+        # hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # # Create a new user entity
+        # new_user = UserEntity(username=username, gmail=gmail, hash_password=hashed_password)
+        
+        # # Add the new user to the session and commit changes
+        # try:
+        #     self.session.add(new_user)
+        #     self.session.commit()
+        #     logger.success(f"{username} user signed up successfully")
+        #     return True
+        # except Exception as e:
+        #     logger.error(f"Error occurred while signing up {username} user: {e}")
+        #     self.session.rollback()
+        #     return False
+        # finally:
+            # self.session.close()
 
     
