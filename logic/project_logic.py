@@ -198,7 +198,7 @@ class project:
         project_name_exist = project_name_exist.fetchone()
         if project_name_exist!= None:
             project_id = project_name_exist[1]
-            project = self.session.execute(select(TaskEntity).filter_by(id=project_id))
+            project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
             project = project.scalars().one_or_none()
             users = project.users
             for user in users:
@@ -231,69 +231,73 @@ class project:
             else:
                 project_id = project_name_exist[1]
                 is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
+                is_leader = is_leader.scalars().one_or_none()
+
                 if is_leader==None or is_leader==[]:
                     print("you are not leader")
                 else:
+                    pass
                     self.session.execute(delete(UserProjectEntity).where(UserProjectEntity.project_id == project_id))
                     self.session.commit()
                     self.session.execute(delete(ProjectEntity).where(ProjectEntity.id == project_id))
                     self.session.commit()
 
     def delete_user_from_project(self):
-            project_name = input("please enter project name for delete")
-            user_name_for_delete = input("please enter username for delete")
-            user_id_for_delete = self.session.execute(select(UserEntity).filter_by(username =user_name_for_delete ))
-            user_id_for_delete = user_id_for_delete.scalars().one_or_none()
-            if user_id_for_delete ==None:
-                print("this username dose not exist")
+        project_name = input("please enter project name for delete")
+        user_name_for_delete = input("please enter username for delete")
+        user_id_for_delete = self.session.execute(select(UserEntity).filter_by(username =user_name_for_delete ))
+        user_id_for_delete = user_id_for_delete.scalars().one_or_none()
+        if user_id_for_delete ==None:
+            print("this username dose not exist")
+        else:
+            delete_user_id = user_id_for_delete.id
+
+            project_name_exist = self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == project_name,
+            UserProjectEntity.user_id == self.user_id
+        ))
+            project_name_exist = project_name_exist.fetchone()
+
+            if project_name_exist == None:
+                print("dose not exist this project")
+
             else:
-                delete_user_id = user_id_for_delete.id
-
-                project_name_exist = self.session.execute(select(
-                ProjectEntity.project_name,
-                ProjectEntity.id,
-                UserProjectEntity.id,
-                UserEntity.id,
-                UserProjectEntity.user_id,
-                UserProjectEntity.project_id
-            ).join(
-                UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-            ).join(
-                ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-            ).where(
-                ProjectEntity.project_name == project_name,
-                UserProjectEntity.user_id == self.user_id
-            ))
-                project_name_exist = project_name_exist.fetchone()
-
-                if project_name_exist == None:
-                    print("dose not exist this project")
-
+                project_id = project_name_exist[1]
+                is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
+                is_leader = is_leader.scalars().one_or_none()
+                if is_leader==None or is_leader==[]:
+                    print("you are not leader")
                 else:
-                    project_id = user_delete_exist[1]
-                    is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
-                    if is_leader==None or is_leader==[]:
-                        print("you are not leader")
+                    user_delete_exist = self.session.execute(select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == project_name,
+                    UserProjectEntity.user_id == delete_user_id
+                ))
+                    user_delete_exist = user_delete_exist.fetchone()
+                    if user_delete_exist == None:
+                        print("this username dose not exist in this project")
                     else:
-                        user_delete_exist = self.session.execute(select(
-                        ProjectEntity.project_name,
-                        ProjectEntity.id,
-                        UserProjectEntity.id,
-                        UserEntity.id,
-                        UserProjectEntity.user_id,
-                        UserProjectEntity.project_id
-                    ).join(
-                        UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-                    ).join(
-                        ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-                    ).where(
-                        ProjectEntity.project_name == project_name,
-                        UserProjectEntity.user_id == delete_user_id
-                    ))
-                        user_delete_exist = user_delete_exist.fetchone()
-                        if user_delete_exist == None:
-                            print("this username dose not exist in this project")
-                        else:
-                            
-                            self.session.execute(delete(UserProjectEntity).filter(UserProjectEntity.project_id == project_id,UserProjectEntity.user_id == delete_user_id))
-                            self.session.commit()
+                        pass
+                        self.session.execute(delete(UserProjectEntity).filter(UserProjectEntity.project_id == project_id,UserProjectEntity.user_id == delete_user_id))
+                        self.session.commit()
