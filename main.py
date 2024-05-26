@@ -23,6 +23,7 @@ x.signin_user()
 
 y = project(x)
 y.list_tasks()
+y.list_users()
 # y.create_project()
 z = Tasks(y,x)
 # z.create_task()

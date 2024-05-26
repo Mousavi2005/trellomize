@@ -165,4 +165,29 @@ class project:
 
 
     def list_users(self):
-        pass
+        self.project_name_list = input("please enter project_name")
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+        if project_name_exist!= None:
+            project_id = project_name_exist[1]
+            project = self.session.execute(select(TaskEntity).filter_by(id=project_id))
+            project = project.scalars().one_or_none()
+            users = project.users
+            for user in users:
+                print(user.username)
+        else:
+            print("project dose not exist")
