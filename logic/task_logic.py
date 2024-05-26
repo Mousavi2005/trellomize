@@ -251,7 +251,76 @@ class Tasks:
                         return "Successful"
                 
 
-    def list_tasks(self):
-        self.user_id=self.user.get_id_user_login()
-        user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
-        print(user.tasks)
+    def list_users(self):
+        self.project_name_list=input("please enter project name")
+        self.task_name_list=input("please enter task name")
+        user_in_task_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            TaskEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id,
+            TaskEntity.task_name,
+            UserTaskEntity.id,
+            UserEntity.id,
+            UserTaskEntity.user_id,
+            UserTaskEntity.task_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).join(
+            UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
+        ).join(
+            TaskEntity, UserTaskEntity.task_id == TaskEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            TaskEntity.task_name == self.task_name_list,
+            UserTaskEntity.user_id==self.user_id
+        ))
+        user_in_task_exist = user_in_task_exist.fetchone()
+        if user_in_task_exist != None:
+            task_id = user_in_task_exist[1]
+            task = self.session.execute(select(TaskEntity).filter_by(id=task_id))
+            task = task.scalars().one_or_none()
+            for user in task.users:
+                print(user.username)
+        else:
+            print("dose not this task")
+
+    def list_comment(self):
+        self.project_name_list=input("please enter project name")
+        self.task_name_list=input("please enter task name")
+        user_in_task_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            TaskEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id,
+            TaskEntity.task_name,
+            UserTaskEntity.id,
+            UserEntity.id,
+            UserTaskEntity.user_id,
+            UserTaskEntity.task_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).join(
+            UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
+        ).join(
+            TaskEntity, UserTaskEntity.task_id == TaskEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            TaskEntity.task_name == self.task_name_list,
+            UserTaskEntity.user_id==self.user_id
+        ))
+        user_in_task_exist = user_in_task_exist.fetchone()
+        if user_in_task_exist != None:
+            task_id = user_in_task_exist[1]
+            task = self.session.execute(select(TaskEntity).filter_by(id=task_id))
+            task = task.scalars().one_or_none()
+            for comment in task.comments:
+                print(comment.comment_name)
