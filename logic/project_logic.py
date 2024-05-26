@@ -8,7 +8,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 import psycopg2
 from logic.user_logic import UserLogic
-from model.base_entity import UserEntity,UserProjectEntity,LeaderEntity
+from model.base_entity import UserEntity,UserProjectEntity,LeaderEntity,TaskEntity
 engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
@@ -139,3 +139,30 @@ class project:
 
 
     
+    def list_tasks(self):
+        self.project_name_list = input("please enter project_name")
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == self.project_name_list,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        project_name_exist = project_name_exist.fetchone()
+        project_id = project_name_exist[1]
+        tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
+        tasks = tasks.scalars().all()
+        for task in tasks:
+            print(task.task_name)
+
+
+    def list_users(self):
+        pass
