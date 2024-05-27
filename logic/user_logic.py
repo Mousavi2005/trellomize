@@ -100,7 +100,16 @@ class UserLogic:
         if len(user.projects)==0:
             print("dose not exist any project")
 
+    def list_leader_project(self):
 
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        user_id = user.id
+        projects_id = self.session.execute(select(LeaderEntity.project_id).filter_by(user_id=user_id)).scalars().all()
+        projects = self.session.execute(select(ProjectEntity).where(ProjectEntity.id.in_(projects_id))).scalars().all()
+        for project in projects:
+            print(project.project_name)
+            
     def signout(self):
         print("signout successfully")
         self.id = None
