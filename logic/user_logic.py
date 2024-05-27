@@ -3,7 +3,7 @@ from sqlalchemy import select, text, update, MetaData, Table
 from model.base_entity import UserEntity
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-
+from model.base_entity import LeaderEntity,ProjectEntity
 
 engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
@@ -89,6 +89,16 @@ class UserLogic:
         else:
             for task in user.projects:
                 print(task.project_name)
+        
+    def list_leader_project(self):
+
+        user = self.session.execute(select(UserEntity).filter_by(id=self.id))
+        user = user.scalars().one_or_none()
+        user_id = user.id
+        projects_id = self.session.execute(select(LeaderEntity.project_id).filter_by(user_id=user_id)).scalars().all()
+        projects = self.session.execute(select(ProjectEntity).where(ProjectEntity.id.in_(projects_id))).scalars().all()
+        for project in projects:
+            print(project.project_name)
 
 def get_credentials_from_database(table_name):
     try:

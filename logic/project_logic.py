@@ -222,7 +222,8 @@ class project:
                 if is_leader==None or is_leader==[]:
                     print("you are not leader")
                 else:
-                    pass
+                    self.session.execute(delete(LeaderEntity).where(LeaderEntity.project_id == project_id))
+                    self.session.commit()
                     self.session.execute(delete(UserProjectEntity).where(UserProjectEntity.project_id == project_id))
                     self.session.commit()
                     self.session.execute(delete(ProjectEntity).where(ProjectEntity.id == project_id))

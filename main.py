@@ -19,19 +19,21 @@ x=UserLogic()
 x.signin_user()
 # x.list_tasks()
 # x.list_projects()
-
+x.list_leader_project()
 
 y = project(x)
+
 # y.delete_user_from_project()
-y.delete_project()
+# y.delete_project()
 # y.list_tasks()
-y.list_users()
+# y.list_users()
 # y.create_project()
+# y.add_user_to_project()
+
 z = Tasks(y,x)
 # z.list_users()
 # z.create_task()
 # z.add_comment_to_task()
-# y.add_user_to_project()
 # z.add_user_to_task()
 # z.list_comment()
 def get_session():
