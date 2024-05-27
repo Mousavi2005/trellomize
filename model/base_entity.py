@@ -74,6 +74,7 @@ class UserEntity(BaseEntity):
     first_name = Column(String, unique=False, index=True)
     last_name = Column(String, unique=False, index=True)
     hash_password = Column(String(200))
+    
     projects = relationship("ProjectEntity",secondary = "userproject",back_populates="users")
     leaders = relationship("LeaderEntity",back_populates="user")
 
