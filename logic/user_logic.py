@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 import regex as re
 
-
+from model.base_entity import LeaderEntity,ProjectEntity
 engine = create_engine("postgresql://postgres:postgres@localhost/trello")
 
 def get_session():
@@ -109,7 +109,7 @@ class UserLogic:
         projects = self.session.execute(select(ProjectEntity).where(ProjectEntity.id.in_(projects_id))).scalars().all()
         for project in projects:
             print(project.project_name)
-            
+
     def signout(self):
         print("signout successfully")
         self.id = None
