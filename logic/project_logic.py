@@ -1,5 +1,5 @@
-from sqlalchemy import select ,and_
-from model.base_entity import ProjectEntity
+from sqlalchemy import select ,and_, delete
+from model.base_entity import ProjectEntity, TaskEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, table
 # from logic.user_logic import get_credentials_from_database
@@ -9,7 +9,14 @@ from rich.table import Table
 import psycopg2
 from logic.user_logic import UserLogic
 from model.base_entity import UserEntity,UserProjectEntity,LeaderEntity
+from loguru import logger
+
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
+logger.add(
+    "file1",
+    format="{time} {level} {message}",
+    rotation="1 MB"
+)
 
 def get_session():
     Session = sessionmaker(bind=engine)
@@ -27,130 +34,729 @@ class project:
         self.session = get_session()
    
 
-    def create_project(self,pname):
-        self.user_id = self.use.get_id_user_login()
-        # print(self.user_id)
-        if self.user_id != None:
-            user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
-            user = user.scalars().one_or_none()
-            # self.create_project_from_input()
-            self.project_name = pname
+    # def create_project(self,pname: str) -> str:
+    #     """This function takes needed argument and creates a project (a user can't have two project with the same name)"""
 
-            project_name_exist=self.session.execute(select(
-            ProjectEntity.project_name,
-            UserProjectEntity.id,
-            UserEntity.id,
-            UserProjectEntity.user_id,
-            UserProjectEntity.project_id
-        ).join(
-            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-        ).join(
-            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-        ).where(
-            ProjectEntity.project_name == self.project_name,
-            UserProjectEntity.user_id==self.user_id
-        ))
+        
+    #     self.user_id = self.use.get_id_user_login()
+    #     if self.user_id != None:
+    #         user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
+    #         user = user.scalars().one_or_none()
+    #         self.project_name = pname
+
+    #         project_name_exist=self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == self.project_name,
+    #         UserProjectEntity.user_id==self.user_id
+    #     ))
            
-            project_name_exist = project_name_exist.scalars().all()
-            print(project_name_exist)
-            if project_name_exist != []:
-                # print("this project_name is exist")
-                return "this project_name is exist"
-                # return False
-            model_project = ProjectEntity(project_name=self.project_name, username=user.username, hash_password=user.hash_password, first_name=user.first_name, last_name=user.last_name)
-            model_leader = LeaderEntity()
-            user.projects.append(model_project)
+    #         project_name_exist = project_name_exist.scalars().all()
 
-            model_leader.project=model_project
-            model_leader.user=user
+    #         if project_name_exist != []:
+    #             logger.warning(f"user already has project {pname}")
 
+    #             return "this project_name is exist"
 
-            self.session.add(model_project)
-            self.session.add(model_leader)
-            self.session.commit()
-            self.session.refresh(model_project)
-            # self.session.refresh(model_leader)
-            # print("create project successfull")
-            return "create project successfull"
+    #         logger.success("Project created successfuly")
+
+    #         model_project = ProjectEntity(project_name=self.project_name, username=user.username, hash_password=user.hash_password, first_name=user.first_name, last_name=user.last_name)
+    #         model_leader = LeaderEntity()
+    #         user.projects.append(model_project)
+
+    #         model_leader.project=model_project
+    #         model_leader.user=user
+    #         self.session.add(model_project)
+    #         self.session.add(model_leader)
+    #         self.session.commit()
+    #         self.session.refresh(model_project)
+    #         return "create project successfull"
             
-        else:
-            print("not authentication. you should login or signup")
+    #     else:
+    #         logger.critical("We don't have users id")
+            
+    #         print("not authentication. you should login or signup")
 
+    def create_project(self, pname: str) -> str:
+        """This function takes needed argument and creates a project (a user can't have two projects with the same name)"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            if self.user_id is not None:
+                user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
+                user = user.scalars().one_or_none()
+                self.project_name = pname
 
+                project_name_exist = self.session.execute(
+                    select(
+                        ProjectEntity.project_name,
+                        UserProjectEntity.id,
+                        UserEntity.id,
+                        UserProjectEntity.user_id,
+                        UserProjectEntity.project_id
+                    ).join(
+                        UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                    ).join(
+                        ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                    ).where(
+                        ProjectEntity.project_name == self.project_name,
+                        UserProjectEntity.user_id == self.user_id
+                    )
+                )
 
+                project_name_exist = project_name_exist.scalars().all()
 
+                if project_name_exist:
+                    logger.warning(f"user already has project {pname}")
+                    return "this project name exists"
 
-    def add_user_to_project(self, uname, pname):
-        self.user_id = self.use.get_id_user_login()
+                logger.success("Project created successfully")
 
-        # self.input_for_add_project()
-        self.add_username = uname
-        self.add_project_name = pname
+                model_project = ProjectEntity(
+                    project_name=self.project_name, 
+                    username=user.username, 
+                    hash_password=user.hash_password, 
+                    first_name=user.first_name, 
+                    last_name=user.last_name
+                )
+                model_leader = LeaderEntity()
+                user.projects.append(model_project)
 
-        project_name_exist = self.session.execute(select(
-            ProjectEntity.project_name,
-            UserProjectEntity.id,
-            UserEntity.id,
-            UserProjectEntity.user_id,
-            UserProjectEntity.project_id
-        ).join(
-            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-        ).join(
-            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-        ).where(
-            ProjectEntity.project_name == self.add_project_name,
-            UserProjectEntity.user_id == self.user_id
-        ))
-        project_name_exist = project_name_exist.fetchone()
+                model_leader.project = model_project
+                model_leader.user = user
+                self.session.add(model_project)
+                self.session.add(model_leader)
+                self.session.commit()
+                self.session.refresh(model_project)
+                return "create project successful"
 
-        if project_name_exist == None:
-            print(self.user_id)
-            return "you have not project with this name!"
-        else:
-            project_id = project_name_exist[1]
-            user_exsit = self.session.execute(select(UserEntity).filter_by(username = self.add_username))
-            user_exsit = user_exsit.scalars().one_or_none()
-            if user_exsit == None:
-                # print("The user you want to add to your project does not exist")
-                return "The user you want to add to your project does not exist"
             else:
-                project_name_exist=self.session.execute(select(
-            ProjectEntity.project_name,
-            ProjectEntity.id,
-            UserProjectEntity.id,
-            UserEntity.id,
-            UserProjectEntity.user_id,
-            UserProjectEntity.project_id
-        ).join(
-            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-        ).join(
-            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-        ).where(
-            # ProjectEntity.project_name == self.add_project_name,
-            ProjectEntity.id == project_id,
-            UserProjectEntity.user_id==user_exsit.id
-        ))
-                project_name_exist = project_name_exist.fetchone()
+                logger.critical("We don't have user's id")
+                return "not authenticated. you should login or signup"
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}"
 
-                model_project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
-                model_project = model_project.scalars().one_or_none()
-                if project_name_exist!= None:
-                    # print("The user has already been added to your project")
-                    return "The user has already been added to your project"
+    # def add_user_to_project(self, uname: str, pname: str) -> str:
+    #     """This function takes needed argumants and adds user to project"""
+
+    #     self.user_id = self.use.get_id_user_login()
+    #     self.add_username = uname
+    #     self.add_project_name = pname
+
+    #     project_name_exist = self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == self.add_project_name,
+    #         UserProjectEntity.user_id == self.user_id
+    #     ))
+    #     project_name_exist = project_name_exist.fetchone()
+
+    #     if project_name_exist == None:
+    #         logger.warning(f"leader doesn't have {pname} project")
+
+    #         return "you don't have project with this name!"
+    #     else:
+    #         project_id = project_name_exist[1]
+    #         user_exsit = self.session.execute(select(UserEntity).filter_by(username = self.add_username))
+    #         user_exsit = user_exsit.scalars().one_or_none()
+    #         if user_exsit == None:
+    #             logger.warning(f"user {uname} doesn'd have account")
+
+    #             return "The user you want to add to your project does not exist"
+    #         else:
+    #             project_name_exist=self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         ProjectEntity.id,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         # ProjectEntity.project_name == self.add_project_name,
+    #         ProjectEntity.id == project_id,
+    #         UserProjectEntity.user_id==user_exsit.id
+    #     ))
+    #             project_name_exist = project_name_exist.fetchone()
+
+    #             # model_project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
+    #             # model_project = model_project.scalars().one_or_none()
+
+    #             model_project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
+    #             model_project = model_project.scalars().one_or_none()
+    #             # print(model_project)
+    #             if project_name_exist!= None:
+    #                 logger.warning(f"The {uname} has already been added to {pname} project")
+
+    #                 return "The user has already been added to your project"
+    #             else:
+    #                 logger.success(f"user {uname} added to {pname} project")
+
+    #                 user_exsit.projects.append(model_project)
+    #                 self.session.commit()
+    #                 return "User Added to project succesfuly"
+
+    def add_user_to_project(self, uname: str, pname: str) -> str:
+        """This function takes needed arguments and adds user to project"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            self.add_username = uname
+            self.add_project_name = pname
+
+            project_name_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == self.add_project_name,
+                    UserProjectEntity.user_id == self.user_id
+                )
+            )
+            project_name_exist = project_name_exist.fetchone()
+
+            if project_name_exist is None:
+                logger.warning(f"leader doesn't have {pname} project")
+                return "you don't have project with this name!"
+            else:
+                project_id = project_name_exist[1]
+                # print(project_id)
+                # print("----------------------")
+                user_exsit = self.session.execute(select(UserEntity).filter_by(username=self.add_username))
+                user_exsit = user_exsit.scalars().one_or_none()
+                if user_exsit is None:
+                    logger.warning(f"user {uname} doesn't have an account")
+                    return "The user you want to add to your project does not exist"
                 else:
-                    user_exsit.projects.append(model_project)
+                    project_name_exist = self.session.execute(
+                        select(
+                            ProjectEntity.project_name,
+                            ProjectEntity.id,
+                            UserProjectEntity.id,
+                            UserEntity.id,
+                            UserProjectEntity.user_id,
+                            UserProjectEntity.project_id
+                        ).join(
+                            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                        ).join(
+                            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                        ).where(
+                            ProjectEntity.id == project_id,
+                            UserProjectEntity.user_id == user_exsit.id
+                        )
+                    )
+                    project_name_exist = project_name_exist.fetchone()
+
+                    model_project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
+                    model_project = model_project.scalars().one_or_none()
+                    # print(model_project)
+                    # print("--------------------------")
+
+                    if project_name_exist != None:
+                        logger.warning(f"The {uname} has already been added to {pname} project")
+                        return "The user has already been added to your project"
+                    else:
+                        logger.success(f"user {uname} added to {pname} project")
+                        user_exsit.projects.append(model_project)
+                        self.session.commit()
+                        return "User added to project successfully"
+
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}" 
+
+    # def list_tasks(self, pname):
+    #     """This function shows list of project tasks"""
+    #     self.user_id = self.use.get_id_user_login()
+    #     self.project_name_list = pname
+
+    #     project_name_exist = self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         ProjectEntity.id,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == self.project_name_list,
+    #         UserProjectEntity.user_id == self.user_id
+    #     ))
+    #     project_name_exist = project_name_exist.fetchone()
+
+    #     if project_name_exist is None:
+    #         logger.warning("This project doesn't exist!")
+
+    #         return False
+    #     else:
+    #         logger.success("list of project task showed successfuly")
+
+    #         project_id = project_name_exist[1]
+
+    #         tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
+    #         tasks = tasks.scalars().all()
+
+    #         tasks_data = [
+    #             {
+    #                 task.task_name,
+    #             }
+    #             for task in tasks
+    #         ]
+
+    #         return tasks_data
+
+    def list_tasks(self, pname):
+        """This function shows list of project tasks"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            self.project_name_list = pname
+
+            project_name_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == self.project_name_list,
+                    UserProjectEntity.user_id == self.user_id
+                )
+            )
+            project_name_exist = project_name_exist.fetchone()
+
+            if project_name_exist is None:
+                logger.warning("This project doesn't exist!")
+                return False
+            else:
+                logger.success("List of project tasks shown successfully")
+
+                project_id = project_name_exist[1]
+
+                tasks = self.session.execute(select(TaskEntity).filter_by(project_id=project_id))
+                tasks = tasks.scalars().all()
+
+                tasks_data = [
+                    {
+                        task.task_name,
+                    }
+                    for task in tasks
+                ]
+
+                return tasks_data
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}"
+
+    # def list_users(self, pname):
+    #     """This function returns list of users in a project"""
+    #     self.user_id = self.use.get_id_user_login()
+    #     self.project_name_list = pname
+
+    #     project_name_exist=self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         ProjectEntity.id,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == self.project_name_list,
+    #         UserProjectEntity.user_id==self.user_id
+    #     ))
+    #     project_name_exist = project_name_exist.fetchone()
+
+    #     if project_name_exist!= None:
+    #         logger.success(f"List of users in {pname} project showed successfuly")
+
+    #         project_id = project_name_exist[1]
+    #         project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
+    #         project = project.scalars().one_or_none()
+    #         users = project.users
+
+    #         tasks_data = [
+    #             {
+    #                 user.username,
+    #             }
+    #             for user in users
+    #         ]
+
+    #         return tasks_data
+            
+    #     else:
+    #         logger.warning(f"user doesn't have {pname} project")
+
+    #         return False
+
+    def list_users(self, pname):
+        """This function returns list of users in a project"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            self.project_name_list = pname
+
+            project_name_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == self.project_name_list,
+                    UserProjectEntity.user_id == self.user_id
+                )
+            )
+            project_name_exist = project_name_exist.fetchone()
+
+            if project_name_exist is not None:
+
+                project_id = project_name_exist[1]
+                project = self.session.execute(select(ProjectEntity).filter_by(id=project_id))
+                project = project.scalars().one_or_none()
+
+                if project is None:
+                    logger.error(f"Project with id {project_id} not found")
+                    return "Project not found"
+                logger.success(f"List of users in {pname} project shown successfully")
+
+                users = project.users
+
+                users_data = [
+                    {
+                        "username": user.username,
+                    }
+                    for user in users
+                ]
+
+                return users_data
+            else:
+                logger.warning(f"User doesn't have {pname} project")
+                return False
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}"
+
+    # def delete_project(self, pname):
+    #         """This function deletes a project (if user is leader of it)"""
+
+    #         self.user_id = self.use.get_id_user_login()
+    #         project_name = pname
+    #         project_name_exist = self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         ProjectEntity.id,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == project_name,
+    #         UserProjectEntity.user_id == self.user_id
+    #     ))
+    #         project_name_exist = project_name_exist.fetchone()
+
+    #         if project_name_exist == None:
+    #             logger.warning(f"user doesn't have {pname} project to delete it")
+    #             # print("dose not exist this project")
+    #             return "You don't have this project"
+    #         else:
+    #             project_id = project_name_exist[1]
+    #             is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
+    #             is_leader = is_leader.scalars().one_or_none()
+
+    #             if is_leader==None or is_leader==[]:
+    #                 logger.warning(f"user isn't leader of {pname} project to delete it")
+    #                 # print("you are not leader")
+    #                 return "you are not leader"
+    #             else:
+    #                 logger.success(f"{pname} project deleted succussfuly")
+
+    #                 self.session.execute(delete(LeaderEntity).where(UserProjectEntity.project_id == project_id))
+    #                 self.session.commit()
+
+    #                 self.session.execute(delete(UserProjectEntity).where(UserProjectEntity.project_id == project_id))
+    #                 self.session.commit()
+                    
+    #                 self.session.execute(delete(ProjectEntity).where(ProjectEntity.id == project_id))
+    #                 self.session.commit()
+                    
+
+    #                 return "Project deleted successfuly"
+
+    def delete_project(self, pname):
+        """This function deletes a project (if user is leader of it)"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            project_name = pname
+            
+            project_name_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == project_name,
+                    UserProjectEntity.user_id == self.user_id
+                )
+            )
+            project_name_exist = project_name_exist.fetchone()
+
+            if project_name_exist is None:
+                logger.warning(f"User doesn't have {pname} project to delete it")
+                return "You don't have this project"
+            else:
+                project_id = project_name_exist[1]
+                is_leader = self.session.execute(
+                    select(LeaderEntity).where(
+                        LeaderEntity.user_id == self.user_id,
+                        LeaderEntity.project_id == project_id
+                    )
+                )
+                is_leader = is_leader.scalars().one_or_none()
+
+                if is_leader is None:
+                    logger.warning(f"User isn't leader of {pname} project to delete it")
+                    return "You are not leader"
+                else:
+                    logger.success(f"{pname} project deleted successfully")
+
+                    self.session.execute(delete(LeaderEntity).where(LeaderEntity.project_id == project_id))
                     self.session.commit()
-                    return "User Added to project succesfully"
 
-    
-    def input_for_add_project(self):
-        self.add_username = input("Which user to add to your project (username)?")
-        self.add_project_name = input("The name of the project you want the user to be added to?")
+                    self.session.execute(delete(UserProjectEntity).where(UserProjectEntity.project_id == project_id))
+                    self.session.commit()
+                    
+                    self.session.execute(delete(ProjectEntity).where(ProjectEntity.id == project_id))
+                    self.session.commit()
 
+                    return "Project deleted successfully"
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}"
 
-    # def create_project_from_input(self):
-    #     self.project_name = input("Enter project name:")
-     
+    # def delete_user_from_project(self, pname, uname):
+    #     """This function deletes a user from a project (if project exists and user is added to it)"""
+
+    #     self.user_id = self.use.get_id_user_login()
+    #     project_name = pname
+    #     user_name_for_delete = uname
+    #     user_id_for_delete = self.session.execute(select(UserEntity).filter_by(username =user_name_for_delete ))
+    #     user_id_for_delete = user_id_for_delete.scalars().one_or_none()
+    #     if user_id_for_delete == None:
+    #         logger.warning(f"{uname} username doesn't have account to delete from project")
+    #         # print("this username dose not exist")
+    #         return "this username dose not exist"
+
+    #     else:
+    #         delete_user_id = user_id_for_delete.id
+    #         project_name_exist = self.session.execute(select(
+    #         ProjectEntity.project_name,
+    #         ProjectEntity.id,
+    #         UserProjectEntity.id,
+    #         UserEntity.id,
+    #         UserProjectEntity.user_id,
+    #         UserProjectEntity.project_id
+    #     ).join(
+    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #     ).join(
+    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #     ).where(
+    #         ProjectEntity.project_name == project_name,
+    #         UserProjectEntity.user_id == self.user_id
+    #     ))
+    #         project_name_exist = project_name_exist.fetchone()
+    #         # print(project_name_exist)
+
+    #         if project_name_exist == None:
+    #             logger.warning(f"user isn't in {pname} project")
+    #             # print("dose not exist this project")
+    #             return "You don't have this project"
+
+    #         else:
+    #             # hvhhvhv
+    #             project_id = project_name_exist[1]
+    #             is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
+    #             is_leader = is_leader.scalars().one_or_none()
+    #             if is_leader==None or is_leader==[]:
+    #                 logger.warning(f"user isn't leader of {pname} project")
+    #                 # print("you are not leader")
+    #                 return "you are not leader"
+                
+    #             else:
+    #                 user_delete_exist = self.session.execute(select(
+    #                 ProjectEntity.project_name,
+    #                 ProjectEntity.id,
+    #                 UserProjectEntity.id,
+    #                 UserEntity.id,
+    #                 UserProjectEntity.user_id,
+    #                 UserProjectEntity.project_id
+    #             ).join(
+    #                 UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+    #             ).join(
+    #                 ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+    #             ).where(
+    #                 ProjectEntity.project_name == project_name,
+    #                 UserProjectEntity.user_id == delete_user_id
+    #             ))
+    #                 user_delete_exist = user_delete_exist.fetchone()
+    #                 # print(user_delete_exist)
+    #                 if user_delete_exist == None:
+    #                     logger.warning(f"{uname} user isn't in this project")
+    #                     # print("this username dose not exist in this project")
+    #                     return "this username isn't in this project"
+    #                 else:
+    #                     logger.success(f"{uname} user deleted from {pname} project successfuly")
+
+    #                     self.session.execute(delete(UserProjectEntity).filter(UserProjectEntity.project_id == project_id,UserProjectEntity.user_id == delete_user_id))
+    #                     self.session.commit()   
+    #                     return "user deleted successfuly"
+
+    def delete_user_from_project(self, pname, uname):
+        """This function deletes a user from a project (if project exists and user is added to it)"""
+        try:
+            self.user_id = self.use.get_id_user_login()
+            project_name = pname
+            user_name_for_delete = uname
+            
+            user_id_for_delete = self.session.execute(
+                select(UserEntity).filter_by(username=user_name_for_delete)
+            )
+            user_id_for_delete = user_id_for_delete.scalars().one_or_none()
+            
+            if user_id_for_delete is None:
+                logger.warning(f"{uname} username doesn't have an account to delete from project")
+                return "This username does not exist"
+
+            delete_user_id = user_id_for_delete.id
+            
+            project_name_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == project_name,
+                    UserProjectEntity.user_id == self.user_id
+                )
+            )
+            project_name_exist = project_name_exist.fetchone()
+            
+            if project_name_exist is None:
+                logger.warning(f"User isn't in {pname} project")
+                return "You don't have this project"
+
+            project_id = project_name_exist[1]
+            
+            is_leader = self.session.execute(
+                select(LeaderEntity).where(
+                    LeaderEntity.user_id == self.user_id,
+                    LeaderEntity.project_id == project_id
+                )
+            )
+            is_leader = is_leader.scalars().one_or_none()
+            
+            if is_leader is None:
+                logger.warning(f"User isn't leader of {pname} project")
+                return "You are not leader"
+            
+            user_delete_exist = self.session.execute(
+                select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == project_name,
+                    UserProjectEntity.user_id == delete_user_id
+                )
+            )
+            user_delete_exist = user_delete_exist.fetchone()
+            
+            if user_delete_exist is None:
+                logger.warning(f"{uname} user isn't in this project")
+                return "This username isn't in this project"
+
+            logger.success(f"{uname} user deleted from {pname} project successfully")
+
+            self.session.execute(
+                delete(UserProjectEntity).where(
+                    UserProjectEntity.project_id == project_id,
+                    UserProjectEntity.user_id == delete_user_id
+                )
+            )
+            self.session.commit()
+            
+            return "User deleted successfully"
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            return f"An error occurred: {str(e)}"
+
     def get_id_project(self):
+        """This function returns id of user"""
         return self.projec_id
 
