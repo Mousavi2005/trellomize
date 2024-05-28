@@ -46,6 +46,11 @@ class Tasks:
 
     def create_task(self):
         self.project_name = input("this task adds to which project?: ")
+        # self.task_status = input("please enter task_status")
+        # self.task_priority = input("please enter task_priority")
+
+        # if self.task_status not in StatusEnum or self.task_priority not in PriorityEnum:
+        #     print("task_status or task_priority invalid")
         project_name_exist=self.session.execute(select(
             ProjectEntity.project_name,
             ProjectEntity.id.label("project_id"),
@@ -178,33 +183,9 @@ class Tasks:
                 if user_exsit == None:
                     print("The user you want to add to your project does not exist")
                 else:
-                    user_in_task_exist=self.session.execute(select(
-                        ProjectEntity.project_name,
-                        TaskEntity.id,
-                        UserProjectEntity.id,
-                        UserEntity.id,
-                        UserProjectEntity.user_id,
-                        UserProjectEntity.project_id,
-                        TaskEntity.task_name,
-                        UserTaskEntity.id,
-                        UserEntity.id,
-                        UserTaskEntity.user_id,
-                        UserTaskEntity.task_id
-                    ).join(
-                        UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-                    ).join(
-                        ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-                    ).join(
-                        UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
-                    ).join(
-                        TaskEntity, UserTaskEntity.task_id == TaskEntity.id
-                    ).where(
-                        ProjectEntity.project_name == self.project_name_add_user,
-                        TaskEntity.task_name == self.task_name_add_user,
-                        UserTaskEntity.user_id==user_exsit.id
-                    ))
-                    user_in_task_exist = user_in_task_exist.fetchone()
-
+                    user_in_task_exist = self.session.execute(select(UserTaskEntity).where(UserTaskEntity.task_id==task.id,UserTaskEntity.user_id==user_exsit.id))
+                    user_in_task_exist = user_in_task_exist.scalars().one_or_none()
+                    
                     if user_in_task_exist!= None:
                         print("The user has already been added to your task")
                     else:
