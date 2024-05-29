@@ -6,17 +6,17 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey,Enum
 from sqlalchemy.orm import Mapped, mapped_column,relationship
 import enum
 Base = declarative_base()
-# class StatusEnum(enum.Enum):
-#     BACKLOG = "BACKLOG"
-#     DOING = "DOING"
-#     DONE = "DONE"
-#     ARCHIVED = "ARCHIVED"
+class StatusEnum(enum.Enum):
+    BACKLOG = "BACKLOG"
+    DOING = "DOING"
+    DONE = "DONE"
+    ARCHIVED = "ARCHIVED"
 
-# class PriorityEnum(enum.Enum):
-#     CRITICAL = "CRITICAL"
-#     HIGH = "HIGH"
-#     MEDIUM = "MEDIUM"
-#     LOW = "LOW"
+class PriorityEnum(enum.Enum):
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 class BaseEntity(Base):
     __abstract__ = True
     
@@ -34,8 +34,8 @@ class TaskEntity(BaseEntity):
     task_id = Column(BIGINT, unique=True,index=True)
     task_name = Column(String)
     task_description = Column(String)
-    # status = Column(Enum(StatusEnum), default=StatusEnum.BACKLOG)
-    # priority = Column(Enum(PriorityEnum), default=PriorityEnum.LOW)
+    status = Column(Enum(StatusEnum), default=StatusEnum.BACKLOG)
+    priority = Column(Enum(PriorityEnum), default=PriorityEnum.LOW)
 
     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False )
     project = relationship("ProjectEntity",back_populates="tasks")

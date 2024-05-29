@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 # from logic.project_logic import project, get_user_credentials
-from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity,LeaderEntity,CommentEntity,UserTaskEntity
+from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity,LeaderEntity,CommentEntity,UserTaskEntity,PriorityEnum,StatusEnum
 import psycopg2
 
 engine = create_engine("postgresql://postgres:postgres@localhost/trello")
@@ -43,14 +43,13 @@ class Tasks:
         self.task_name_add_user = None
         self.user_add_user = None
         self.user_id=self.user.get_id_user_login() 
-
+        self.task_status = None
+        self.task_priority = None
     def create_task(self):
-        self.project_name = input("this task adds to which project?: ")
-        # self.task_status = input("please enter task_status")
-        # self.task_priority = input("please enter task_priority")
+        tempbool = self.input_task_info()
 
-        # if self.task_status not in StatusEnum or self.task_priority not in PriorityEnum:
-        #     print("task_status or task_priority invalid")
+        if self.task_status not in StatusEnum or self.task_priority not in PriorityEnum:
+            print("task_status or task_priority invalid")
         project_name_exist=self.session.execute(select(
             ProjectEntity.project_name,
             ProjectEntity.id.label("project_id"),
@@ -77,7 +76,7 @@ class Tasks:
 
        
 
-            tempbool = self.input_task_info()
+            
             if tempbool == True:
                 leader = self.session.execute(select(LeaderEntity).filter(LeaderEntity.project_id==self.project_id,LeaderEntity.user_id==self.user_id))
                 leader = leader.scalars().one_or_none()
@@ -93,13 +92,13 @@ class Tasks:
                 exist_task = exist_task.scalars().one_or_none()
                 print(exist_task)
                 if exist_task == None or exist_task == []:
-                    db_model = TaskEntity(task_name=self.task_name,task_description=self.task_description,
+                    db_model = TaskEntity(task_priority=self.task_priority,task_status=self.task_status,task_name=self.task_name,task_description=self.task_description,
                                           project_id=self.project_id,leader_id = self.leader_id)
                     self.session.add(db_model)
                     self.session.commit()
                     self.session.refresh(db_model)
-            else:
-                print("this project has this task. ")
+                else:
+                    print("this project has this task. ")
 
         
 
@@ -108,6 +107,9 @@ class Tasks:
         
         self.task_name = input("Enter task name: ")
         self.task_description = input("Enter task description: ")
+        self.project_name = input("this task adds to which project?: ")
+        self.task_status = input("please enter task_status")
+        self.task_priority = input("please enter task_priority")
         return True
      
     def add_comment_to_task(self):
@@ -273,3 +275,60 @@ class Tasks:
             task = task.scalars().one_or_none()
             for comment in task.comments:
                 print(comment.comment_name)
+
+    def edit_task(self):
+        self.user_id=self.user.get_id_user_login()
+        project_name = input("enter project name: ")
+        taskname_name = input("enter task name: ")
+        project_name_exist=self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id.label("project_id"),
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == project_name,
+            UserProjectEntity.user_id==self.user_id
+        ))
+        
+        project_name_exist = project_name_exist.fetchone()
+        if project_name_exist==None:
+                print("you dont have a project with this name")
+        else:
+            project_id = project_name_exist[1]
+            task = self.session.execute(select(TaskEntity).filter(TaskEntity.project_id==project_id,TaskEntity.task_name==self.task_name_add_user))
+            task=task.scalars().one_or_none()
+            if task==None:
+                print("this task dose not exist in this project")
+            else:
+                user_in_task_exist = self.session.execute(select(UserTaskEntity).where(UserTaskEntity.task_id==task.id,UserTaskEntity.user_id==self.user_id))
+                user_in_task_exist = user_in_task_exist.scalars().one_or_none()
+                if user_in_task_exist ==None:
+                    print("you not member in this project!")
+                else:
+                    task_description = input("please enter new description")
+                    status = input("please enter new status")
+                    priority = input("please enter new priority")
+                    if task_description!="":
+                        task.task_description = task_description
+                    if status!="":
+                        if status in StatusEnum:
+                            task.status = status
+                        else:
+                            print("status invalid")
+                    if priority!="":
+                        if priority in PriorityEnum:
+                            task.priority = priority
+                        else:
+                            print("invalid priority")
+                    self.session.commit()
+
+                    
+
+
+
