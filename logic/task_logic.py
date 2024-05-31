@@ -1,5 +1,5 @@
 import argparse
-from sqlalchemy import select, Column
+from sqlalchemy import select, Column,delete
 from model.base_entity import TaskEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, table
@@ -378,3 +378,71 @@ class Tasks:
                     for his in history:
                         print(his.edit_status)
 
+    def delete_user_from_task(self):
+        self.user_id=self.user.get_id_user_login()
+        project_name = input("project name")
+        task_name = input("task name ")
+        username = input("user name")
+        user_id_for_delete = self.session.execute(select(UserEntity).filter_by(username = username ))
+        user_id_for_delete = user_id_for_delete.scalars().one_or_none()
+        if user_id_for_delete ==None:
+            print("this username dose not exist")
+        else:
+            delete_user_id = user_id_for_delete.id
+            project_name_exist = self.session.execute(select(
+            ProjectEntity.project_name,
+            ProjectEntity.id,
+            UserProjectEntity.id,
+            UserEntity.id,
+            UserProjectEntity.user_id,
+            UserProjectEntity.project_id
+        ).join(
+            UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+        ).join(
+            ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+        ).where(
+            ProjectEntity.project_name == project_name,
+            UserProjectEntity.user_id == self.user_id
+        ))
+            project_name_exist = project_name_exist.fetchone()
+            if project_name_exist == None:
+                print("dose not exist this project")
+
+            else:
+                project_id = project_name_exist[1]
+                is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
+                is_leader = is_leader.scalars().one_or_none()
+                if is_leader==None or is_leader==[]:
+                    print("you are not leader")
+                else:
+                    user_delete_exist = self.session.execute(select(
+                    ProjectEntity.project_name,
+                    ProjectEntity.id,
+                    UserProjectEntity.id,
+                    UserEntity.id,
+                    UserProjectEntity.user_id,
+                    UserProjectEntity.project_id
+                ).join(
+                    UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
+                ).join(
+                    ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
+                ).where(
+                    ProjectEntity.project_name == project_name,
+                    UserProjectEntity.user_id == delete_user_id
+                ))
+                    user_delete_exist = user_delete_exist.fetchone()
+                    if user_delete_exist == None:
+                        print("this username dose not exist in this project")
+                    else:
+                        task = self.session.execute(select(TaskEntity).filter(TaskEntity.task_name==task_name,TaskEntity.project_id==project_id))
+                        task = task.scalars().one_or_none()
+                        if task == None:
+                            print("this task dose not exist")
+                        else: 
+                            user_exist_in_task = self.session.execute(select(UserTaskEntity).filter(UserTaskEntity.user_id==delete_user_id,UserTaskEntity.task_id==task.id))
+                            user_exist_in_task = user_exist_in_task.scalars().one_or_none()
+                            if user_exist_in_task == None:
+                                print("this username dose not exist in this task")
+                            else:
+                                self.session.execute(delete(UserTaskEntity).filter(UserTaskEntity.user_id == delete_user_id,UserTaskEntity.task_id == task.id))
+                                self.session.commit()
