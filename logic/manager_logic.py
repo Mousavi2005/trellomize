@@ -5,7 +5,6 @@ from model.base_entity import ManagerEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, table
 from sqlalchemy.sql import text
-from logic.user_logic import get_credentials_from_database
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
@@ -49,6 +48,7 @@ class manager:
 
             text = Text("This Admin Already Has Account", style="bold red")
             console.print(text)
+            return False
         else:
             logger.success(f"Admin : {admin_name} , created successfuly")
 
@@ -58,6 +58,8 @@ class manager:
             self.session.refresh(db_model)
             text = Text("Admin Created", style="bold green")
             console.print(text)
+
+            return True
 
 
 def check_is_user_active(username: str) -> bool:
@@ -79,7 +81,7 @@ def check_is_user_active(username: str) -> bool:
         
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None
+        # return False
     
     finally:
         session.close()
@@ -199,72 +201,72 @@ def activate_user(username: str) -> str:
     cur.close()
     conn.close()
 
-def check_deleted_user(username: str) -> bool:
-    """This function checks if a user is deleted or not"""
+# def check_deleted_user(username: str) -> bool:
+#     """This function checks if a user is deleted or not"""
 
-    metadata = MetaData()
-    metadata.reflect(bind=engine, only=['users'])
-    Users = metadata.tables['users']
+#     metadata = MetaData()
+#     metadata.reflect(bind=engine, only=['users'])
+#     Users = metadata.tables['users']
     
-    session = get_session()
+#     session = get_session()
     
-    try:
-        result = session.query(Users.c.is_deleted).filter(Users.c.username == username).first()
+#     try:
+#         result = session.query(Users.c.is_deleted).filter(Users.c.username == username).first()
         
-        if result:
-            logger.success(f"user : {username}, is deleted")
+#         if result:
+#             logger.success(f"user : {username}, is deleted")
 
-            return result.is_deleted
-        else:
-            return None
+#             return result.is_deleted
+#         else:
+#             return None
         
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+#         return None
     
-    finally:
-        session.close()
+#     finally:
+#         session.close()
 
-def delet_user(username: str) -> str:
-    """This function takes needed argumant and deletes user"""
+# def delet_user(username: str) -> str:
+#     """This function takes needed argumant and deletes user"""
 
-    conn = psycopg2.connect(
-        dbname="t2",
-        user="postgres",
-        password="foxit",
-        host="localhost",
-        port="5432"  
-    )
+#     conn = psycopg2.connect(
+#         dbname="t2",
+#         user="postgres",
+#         password="foxit",
+#         host="localhost",
+#         port="5432"  
+#     )
 
-    cur = conn.cursor()
+#     cur = conn.cursor()
 
-    username_to_activate = username
-    isdeleted = 't'
+#     username_to_activate = username
+#     isdeleted = 't'
 
 
-    select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
+#     select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
 
-    cur.execute(select_query, (username,))
-    row_count = cur.fetchone()[0]
+#     cur.execute(select_query, (username,))
+#     row_count = cur.fetchone()[0]
     
-    if row_count > 0 and  not check_deleted_user(username):
-        logger.success(f"user: {username}, deleted successfuly")
+#     if row_count > 0 and  not check_deleted_user(username):
+#         logger.success(f"user: {username}, deleted successfuly")
 
-        update_query = "UPDATE users SET is_deleted = %s WHERE username = %s;"
-        cur.execute(update_query, (isdeleted,username))
-        conn.commit()
+#         update_query = "UPDATE users SET is_deleted = %s WHERE username = %s;"
+#         cur.execute(update_query, (isdeleted,username))
+#         conn.commit()
 
-        return "user deleted successfully"
+#         return "user deleted successfully"
 
-    elif row_count == 0 :
-        logger.warning(f"user: {username}, doesn't have account!")
+#     elif row_count == 0 :
+#         logger.warning(f"user: {username}, doesn't have account!")
 
-        return "user does not exist. you may have entered username wrong"
-    else:
-        logger.warning(f"user: {username}, is already deleted!")
+#         return "user does not exist. you may have entered username wrong"
+#     else:
+#         logger.warning(f"user: {username}, is already deleted!")
         
-        return "user is already deleted!"
+#         return "user is already deleted!"
 
-    cur.close()
-    conn.close()
+#     cur.close()
+#     conn.close()
 

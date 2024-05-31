@@ -195,7 +195,7 @@ class UserLogic:
 
         return projects_data
 
-    def list_projects(self):
+    def list_projects(self) -> Union[bool, str]:
         """This function shows a list of projects that user is in them (added to them)"""
         try:
             result = self.session.execute(select(UserEntity).filter_by(id=self.id))
@@ -213,12 +213,17 @@ class UserLogic:
 
             projects_data = [
                 {
-                    project.project_name,
+                    'Name' : project.project_name,
                 }
                 for project in user.projects
             ]
+            
+            formatted_p_data = [
+                f"Name: {p['Name']}"
+                for p in projects_data
+            ]
 
-            return projects_data
+            return formatted_p_data
         except Exception as e:
             logger.error(f"An error occurred while listing projects for user {self.id}: {e}")
             return False
@@ -252,7 +257,7 @@ class UserLogic:
 
         return tasks_data
 
-    def list_tasks(self):
+    def list_tasks(self) -> Union[bool, list]:
         """This function shows a list of tasks that user is in them (added to them)"""
         try:
             result = self.session.execute(select(UserEntity).filter_by(id=self.id))
@@ -268,21 +273,30 @@ class UserLogic:
 
             logger.success("User saw tasks he's added to")
 
-            tasks_data = [
+            t_data = [
                 {
-                    task.task_name,
+                    'Name' : task.task_name,
+                    'Status' : task.task_status.value,
+                    'Priority' : task.task_priority.value,
+                    'description' : task.task_description
                 }
                 for task in user.tasks
             ]
+            # print("tasks_data:", tasks_data)
 
-            return tasks_data
+            formatted_tasks_data = [
+                f"Name: {task['Name']}, Status: {task['Status']}, Priority: {task['Priority']}, Description: {task['description']}"
+                for task in t_data
+            ]
+
+            return formatted_tasks_data
         except Exception as e:
             logger.error(f"An error occurred while listing tasks for user {self.id}: {e}")
             return False
         finally:
             self.session.close()
 
-    def list_leader_project(self):
+    def list_leader_project(self) -> list:
         # self.user_id = self.use.get_id_user_login()
 
         user = self.session.execute(select(UserEntity).filter_by(id=self.id))
@@ -291,17 +305,19 @@ class UserLogic:
         projects_id = self.session.execute(select(LeaderEntity.project_id).filter_by(user_id=user_id)).scalars().all()
         projects = self.session.execute(select(ProjectEntity).where(ProjectEntity.id.in_(projects_id))).scalars().all()
 
-        tasks_data = [
+        p_data = [
             {
-                p.project_name,
+                'Name' : p.project_name,
             }
                 for p in projects
         ]
+        
+        formatted_p_data = [
+            f"Name: {p['Name']}"
+            for p in p_data
+        ]
 
-        return tasks_data
-        # for project in projects:
-        #     print(project.project_name)
-
+        return formatted_p_data
 
     def get_id_user_login(self):
         """This function returns user id after login"""
@@ -313,63 +329,60 @@ class UserLogic:
         
         return bool(re.match(r'^[a-zA-Z0-9_.+-]+@gmail\.com$', email))
 
-
-
-def get_credentials_from_database(table_name):
-    """This function connects to database and returns username and password of users in a dictionary"""
-    try:
-        session = get_session()
-        credentials = session.query(UserEntity).all()
+# def get_credentials_from_database(table_name):
+#     """This function connects to database and returns username and password of users in a dictionary"""
+#     try:
+#         session = get_session()
+#         credentials = session.query(UserEntity).all()
         
-        credentials_dict = {}
-        for user in credentials:
-            credentials_dict[user.username] = user.hash_password
+#         credentials_dict = {}
+#         for user in credentials:
+#             credentials_dict[user.username] = user.hash_password
 
-        session.close()
-        return credentials_dict
+#         session.close()
+#         return credentials_dict
 
-    except Exception as e:
-        print("Error while fetching data from database:", e)
-        return None
+#     except Exception as e:
+#         print("Error while fetching data from database:", e)
+#         return None
 
-def get_credentials_from_database_gmail(table_name):
-    """This function connects to database and returns username and gmail of users in a dictionary"""
+# def get_credentials_from_database_gmail(table_name):
+#     """This function connects to database and returns username and gmail of users in a dictionary"""
 
-    try:
-        session = get_session()
-        credentials = session.query(UserEntity).all()
+#     try:
+#         session = get_session()
+#         credentials = session.query(UserEntity).all()
         
-        credentials_dict = {}
-        for user in credentials:
-            credentials_dict[user.username] = user.gmail
+#         credentials_dict = {}
+#         for user in credentials:
+#             credentials_dict[user.username] = user.gmail
 
-        session.close()
-        return credentials_dict
+#         session.close()
+#         return credentials_dict
 
-    except Exception as e:
-        print("Error while fetching data from database:", e)
-        return None
+#     except Exception as e:
+#         print("Error while fetching data from database:", e)
+#         return None
 
-def get_credentials_from_database_user_id():
-    """This function connects to database and returns username and user id of users in a dictionary"""
+# def get_credentials_from_database_user_id():
+#     """This function connects to database and returns username and user id of users in a dictionary"""
 
-    try:
-        session = get_session()
-        credentials = session.query(UserEntity).all()
+#     try:
+#         session = get_session()
+#         credentials = session.query(UserEntity).all()
         
-        credentials_dict = {}
-        for user in credentials:
-            credentials_dict[user.username] = user.id
-        session.close()
-        return credentials_dict
+#         credentials_dict = {}
+#         for user in credentials:
+#             credentials_dict[user.username] = user.id
+#         session.close()
+#         return credentials_dict
 
-    except Exception as e:
-        print("Error while fetching data from database:", e)
-        return None
+#     except Exception as e:
+#         print("Error while fetching data from database:", e)
+#         return None
 
-def get_is_active(username_to_check):
+def get_is_active(username_to_check: str) -> Union[bool, None]:
     """This function connects to database and checks if a user is banned or not"""
-
 
     session = get_session()
 

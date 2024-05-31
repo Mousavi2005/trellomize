@@ -2,7 +2,6 @@ from sqlalchemy import select ,and_, delete
 from model.base_entity import ProjectEntity, TaskEntity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, table
-# from logic.user_logic import get_credentials_from_database
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
@@ -10,6 +9,7 @@ import psycopg2
 from logic.user_logic import UserLogic
 from model.base_entity import UserEntity,UserProjectEntity,LeaderEntity
 from loguru import logger
+from typing import Union
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 logger.add(
@@ -333,7 +333,7 @@ class project:
 
     #         return tasks_data
 
-    def list_tasks(self, pname):
+    def list_tasks(self, pname: str) -> Union[str, list, bool]:
         """This function shows list of project tasks"""
         try:
             self.user_id = self.use.get_id_user_login()
@@ -371,12 +371,17 @@ class project:
 
                 tasks_data = [
                     {
-                        task.task_name,
+                        'Task name' : task.task_name,
                     }
                     for task in tasks
                 ]
 
-                return tasks_data
+                formatted_t_data = [
+                    f"Task name: {t['Task name']}"
+                    for t in tasks_data
+                ]
+
+                return formatted_t_data
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
             return f"An error occurred: {str(e)}"
@@ -425,7 +430,7 @@ class project:
 
     #         return False
 
-    def list_users(self, pname):
+    def list_users(self, pname: str) -> Union[str, list, bool]:
         """This function returns list of users in a project"""
         try:
             self.user_id = self.use.get_id_user_login()
@@ -465,12 +470,18 @@ class project:
 
                 users_data = [
                     {
-                        "username": user.username,
+                        'username' : user.username,
                     }
                     for user in users
                 ]
 
-                return users_data
+                formatted_u_data = [
+                    f"Username : {u['username']}"
+                    for u in users_data
+                ]
+
+
+                return formatted_u_data
             else:
                 logger.warning(f"User doesn't have {pname} project")
                 return False
@@ -528,7 +539,7 @@ class project:
 
     #                 return "Project deleted successfuly"
 
-    def delete_project(self, pname):
+    def delete_project(self, pname: str) -> str:
         """This function deletes a project (if user is leader of it)"""
         try:
             self.user_id = self.use.get_id_user_login()
@@ -663,7 +674,7 @@ class project:
     #                     self.session.commit()   
     #                     return "user deleted successfuly"
 
-    def delete_user_from_project(self, pname, uname):
+    def delete_user_from_project(self, pname: str, uname: str) -> str:
         """This function deletes a user from a project (if project exists and user is added to it)"""
         try:
             self.user_id = self.use.get_id_user_login()
