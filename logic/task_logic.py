@@ -81,7 +81,9 @@ class Tasks:
                 leader = self.session.execute(select(LeaderEntity).filter(LeaderEntity.project_id==self.project_id,LeaderEntity.user_id==self.user_id))
                 leader = leader.scalars().one_or_none()
                 self.leader_id =leader.id
-                
+                userid = leader.user_id
+                userr = self.session.execute(select(UserEntity).filter_by(id=userid))
+                userr = userr.scalars().one_or_none()
 
                 exist_task = self.session.execute(
                     select(TaskEntity).where(
@@ -94,6 +96,7 @@ class Tasks:
                 if exist_task == None or exist_task == []:
                     db_model = TaskEntity(priority=self.task_priority,status=self.task_status,task_name=self.task_name,task_description=self.task_description,
                                           project_id=self.project_id,leader_id = self.leader_id)
+                    userr.tasks.append(db_model)
                     self.session.add(db_model)
                     self.session.commit()
                     self.session.refresh(db_model)

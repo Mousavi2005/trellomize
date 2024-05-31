@@ -32,11 +32,11 @@ y = project(x)
 
 z = Tasks(y,x)
 # z.list_users()
-# z.create_task()
+z.create_task()
 # z.add_comment_to_task()
 # z.add_user_to_task()
 # z.edit_task()
-z.list_history()
+# z.list_history()
 # z.list_comment()
 def get_session():
     Session = sessionmaker(bind=engine)
