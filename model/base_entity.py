@@ -47,6 +47,8 @@ class TaskEntity(BaseEntity):
     users = relationship("UserEntity",secondary = "usertask",back_populates="tasks")
 
     comments = relationship("CommentEntity",back_populates='task')
+    historys = relationship("Task_History",back_populates='task')
+
 class ProjectEntity(BaseEntity):
     __tablename__ = "projects"
     
@@ -113,3 +115,13 @@ class UserTaskEntity(BaseEntity):
     __tablename__ = "usertask"
     user_id = Column(BIGINT,ForeignKey('users.id'),nullable=False)
     task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False)
+
+class Task_History(BaseEntity):
+    __tablename__ = "historis"
+
+    task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False )
+    task = relationship("TaskEntity",back_populates="historys")
+    edit_status = Column(Enum(StatusEnum))
+    edit_priority = Column(Enum(PriorityEnum))
+    edit_description = Column(String)
+    username = Column(String)
