@@ -73,8 +73,33 @@ class TestUserLogic(unittest.TestCase):
         t = Tasks(x,u)
 
         result = t.add_user_to_task('not exist peoject', 'dt1', 'c')
-        self.assertEqual(result, "You don't have a project with this name!") 
+        self.assertEqual(result, "You don't have a project with this name") 
 
+    def test_add_user_to_task_user_not_exist(self):
+        u.login_user('a','a')
+        x.user_id = x.use.get_id_user_login()
+        t = Tasks(x,u)
+
+        result = t.add_user_to_task('a1', 'at1', 'not exist user')
+        self.assertEqual(result, "User doesn't have account") 
+
+    def test_add_user_to_task_user_isalready_added(self):
+        u.login_user('d','d')
+        x.user_id = x.use.get_id_user_login()
+        t = Tasks(x,u)
+
+        result = t.add_user_to_task('d1', 'dt1', 'c')
+        self.assertEqual(result, "User is already in this task")
+
+    def test_add_user_to_task_correct(self):
+        u.login_user('d','d')
+        x.user_id = x.use.get_id_user_login()
+        t = Tasks(x,u)
+
+        result = t.add_user_to_task('d1', 'dt1', 'b')
+        self.assertEqual(result, "Successful")
+
+    
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,25 @@
 
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean
+from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, Date
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Enum
+import enum
 from sqlalchemy.orm import Mapped, mapped_column,relationship
 Base = declarative_base()
+
+class StatusEnum(enum.Enum):
+    BACKLOG = "BACKLOG"
+    TODO = "TODO"
+    DOING = "DOING"
+    DONE = "DONE"
+    ARCHIVED = "ARCHIVED"
+
+class PriorityEnum(enum.Enum):
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 class BaseEntity(Base):
     __abstract__ = True
@@ -18,24 +32,47 @@ class BaseEntity(Base):
     is_deleted:Mapped[bool] = Column(Boolean, nullable=True, default=False)
     is_active: Mapped[bool] = Column(Boolean, default=True)
 
+# origunal:
+# class TaskEntity(BaseEntity):
+#     __tablename__ = "tasks"
+
+#     task_id = Column(BIGINT, unique=True,index=True)
+#     task_name = Column(String)
+#     task_description = Column(String)
+
+
+#     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False )
+#     project = relationship("ProjectEntity",back_populates="tasks")
+
+#     leader_id = Column(BIGINT,ForeignKey('leaders.id'),nullable=True )
+#     leader = relationship("LeaderEntity",back_populates="tasks")
+
+#     # user_id = Column(BIGINT, ForeignKey('users.id'),nullable=True )
+#     users = relationship("UserEntity",secondary = "usertask",back_populates="tasks")
+
+#     comments = relationship("CommentEntity",back_populates='task')
+
 class TaskEntity(BaseEntity):
     __tablename__ = "tasks"
 
     task_id = Column(BIGINT, unique=True,index=True)
     task_name = Column(String)
     task_description = Column(String)
-
+    task_status = Column(Enum(StatusEnum), default=StatusEnum.BACKLOG)
+    task_priority = Column(Enum(PriorityEnum), default=PriorityEnum.LOW)
 
     project_id = Column(BIGINT,ForeignKey('projects.id'),nullable=False )
     project = relationship("ProjectEntity",back_populates="tasks")
 
     leader_id = Column(BIGINT,ForeignKey('leaders.id'),nullable=True )
+    # start_date = Column(Date)
+    finish_date = Column(BIGINT)
+
+
     leader = relationship("LeaderEntity",back_populates="tasks")
-
-    # user_id = Column(BIGINT, ForeignKey('users.id'),nullable=True )
     users = relationship("UserEntity",secondary = "usertask",back_populates="tasks")
-
     comments = relationship("CommentEntity",back_populates='task')
+    historys = relationship("Task_History",back_populates='task')
 
 class ProjectEntity(BaseEntity):
     __tablename__ = "projects"
@@ -104,3 +141,13 @@ class UserTaskEntity(BaseEntity):
     __tablename__ = "usertask"
     user_id = Column(BIGINT,ForeignKey('users.id'),nullable=False)
     task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False)
+
+class Task_History(BaseEntity):
+    __tablename__ = "historis"
+
+    task_id = Column(BIGINT,ForeignKey('tasks.id'),nullable=False )
+    task = relationship("TaskEntity",back_populates="historys")
+    edit_status = Column(Enum(StatusEnum))
+    edit_priority = Column(Enum(PriorityEnum))
+    edit_description = Column(String)
+    username = Column(String)
