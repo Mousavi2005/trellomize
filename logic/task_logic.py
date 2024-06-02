@@ -7,7 +7,6 @@ from sqlalchemy.sql import text
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
-# from logic.project_logic import project, get_user_credentials
 from model.base_entity import ProjectEntity,UserProjectEntity, UserEntity,LeaderEntity, CommentEntity, UserTaskEntity, StatusEnum, PriorityEnum, Task_History
 import psycopg2
 from loguru import logger
@@ -48,61 +47,6 @@ class Tasks:
         self.project_name_add_user = None
         self.task_name_add_user = None
         self.user_add_user = None
-
-    # def list_users(self, pname, tname):
-    #     """This function returns list of users in task (if task exisst)"""
-    #     self.user_id = self.user.get_id_user_login()
-
-    #     self.project_name_list= pname
-    #     self.task_name_list = tname
-
-    #     user_in_task_exist=self.session.execute(select(
-    #         ProjectEntity.project_name,
-    #         TaskEntity.id,
-    #         UserProjectEntity.id,
-    #         UserEntity.id,
-    #         UserProjectEntity.user_id,
-    #         UserProjectEntity.project_id,
-    #         TaskEntity.task_name,
-    #         UserTaskEntity.id,
-    #         UserEntity.id,
-    #         UserTaskEntity.user_id,
-    #         UserTaskEntity.task_id
-    #     ).join(
-    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-    #     ).join(
-    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-    #     ).join(
-    #         UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
-    #     ).join(
-    #         TaskEntity, UserTaskEntity.task_id == TaskEntity.id
-    #     ).where(
-    #         ProjectEntity.project_name == self.project_name_list,
-    #         TaskEntity.task_name == self.task_name_list,
-    #         UserTaskEntity.user_id==self.user_id
-    #     ))
-    #     user_in_task_exist = user_in_task_exist.fetchone()
-    #     if user_in_task_exist != None:
-    #         logger.success("successfuly showed users of a task list")
-
-    #         task_id = user_in_task_exist[1]
-    #         task = self.session.execute(select(TaskEntity).filter_by(id=task_id))
-    #         task = task.scalars().one_or_none()
-
-    #         projects_data = [
-    #         {
-    #             user.username,
-    #         }
-    #         for user in task.users
-    #         ]
-
-    #         return projects_data
-
-    #     else:
-    #         logger.warning(f"{tname} task doesn't have any users")
-    #         # print("dose not this task")
-    #         print("This task doesn't have user")
-    #         return False
 
     def list_users(self, pname: str, tname: str) -> Union[str, list, bool]:
         """This function returns list of users in task"""
@@ -177,61 +121,6 @@ class Tasks:
             logger.error(f"An error occurred: {str(e)}")
             return f"An error occurred: {str(e)}"
 
-    # def list_comment(self, pname, tname):
-    #     """This function shows list of comments in a task (if task exists)"""
-
-    #     self.user_id = self.user.get_id_user_login()
-    #     self.project_name_list = pname
-    #     self.task_name_list = tname
-
-    #     user_in_task_exist=self.session.execute(select(
-    #         ProjectEntity.project_name,
-    #         TaskEntity.id,
-    #         UserProjectEntity.id,
-    #         UserEntity.id,
-    #         UserProjectEntity.user_id,
-    #         UserProjectEntity.project_id,
-    #         TaskEntity.task_name,
-    #         UserTaskEntity.id,
-    #         UserEntity.id,
-    #         UserTaskEntity.user_id,
-    #         UserTaskEntity.task_id
-    #     ).join(
-    #         UserProjectEntity, UserEntity.id == UserProjectEntity.user_id
-    #     ).join(
-    #         ProjectEntity, UserProjectEntity.project_id == ProjectEntity.id
-    #     ).join(
-    #         UserTaskEntity, UserEntity.id == UserTaskEntity.user_id
-    #     ).join(
-    #         TaskEntity, UserTaskEntity.task_id == TaskEntity.id
-    #     ).where(
-    #         ProjectEntity.project_name == self.project_name_list,
-    #         TaskEntity.task_name == self.task_name_list,
-    #         UserTaskEntity.user_id==self.user_id
-    #     ))
-    #     user_in_task_exist = user_in_task_exist.fetchone()
-    #     if user_in_task_exist != None:
-    #         logger.success("successfuly showed list of comments in a task")
-
-    #         task_id = user_in_task_exist[1]
-    #         task = self.session.execute(select(TaskEntity).filter_by(id=task_id))
-    #         task = task.scalars().one_or_none()
-
-    #         projects_data = [
-    #         {
-    #             comment.comment_name,
-    #         }
-    #         for comment in task.comments
-    #         ]
-
-    #         return projects_data
-
-    #     else:
-    #         logger.warning(f"{tname} task doesn't have any comments")
-    #         # print("dose not this task")
-    #         print("This task doesn't have comment")
-    #         return False
-
     def list_comment(self, pname: str, tname: str) -> Union[str, list, bool]:
         """This function shows list of comments in a task (if task exists)"""
         try:
@@ -299,12 +188,15 @@ class Tasks:
             logger.error(f"An error occurred: {str(e)}")
             return f"An error occurred: {str(e)}"
 
-
     def create_task(self, pname: str, tname: str, description: str, priority: str, status: str, finish_date: int) -> Union[str, None]:
         if not isinstance(string_to_int(finish_date), int) :
-            print(finish_date)
-            print(type(finish_date))
+            # print(finish_date)
+            # print(type(finish_date))
             return "invalid finish date.Enter days you want to finsh the task"
+        if status == "":
+            status = "BACKLOG"
+        if priority =="":
+            priority = "LOW"
 
         self.user_id = self.user.get_id_user_login()
         self.task_name = tname
@@ -429,6 +321,7 @@ class Tasks:
             return f"An error occurred: {str(e)}"
 
     def add_user_to_task(self, pname: str, tname: str, uname:str) -> str:
+        """This function takes needed argument and adds a user to task"""
 
         self.user_id=self.user.get_id_user_login()
         self.project_name_add_user = pname
@@ -464,6 +357,8 @@ class Tasks:
             else:
                 user_exsit = self.session.execute(select(UserEntity).filter_by(username = self.user_add_user))
                 user_exsit = user_exsit.scalars().one_or_none()
+                if user_exsit == None or user_exsit==[]:
+                    return "This user dosn't have account or isn't in this project"
                 user_exist_id=user_exsit.id
                 user_exsit = self.session.execute(select(
                 ProjectEntity.project_name,
@@ -524,6 +419,10 @@ class Tasks:
     def edit_task(self, pname: str, tname: str, ppriority: str, sstatus: str, description: str):
         """This function takes needed argument and edits a task"""
         self.user_id=self.user.get_id_user_login()
+        if ppriority == "" :
+            ppriority = "LOW"
+        if sstatus == "":
+            sstatus = "BACKLOG"
 
         user = self.session.execute(select(UserEntity).filter_by(id=self.user_id))
         user = user.scalars().one_or_none()
@@ -548,20 +447,17 @@ class Tasks:
         
         project_name_exist = project_name_exist.fetchone()
         if project_name_exist==None:
-                # print("you dont have a project with this name")
                 return "you dont have a project with this name"
         else:
             project_id = project_name_exist[1]
             task = self.session.execute(select(TaskEntity).filter(TaskEntity.project_id==project_id,TaskEntity.task_name==taskname_name))
             task=task.scalars().one_or_none()
             if task==None:
-                # print("this task dose not exist in this project")
                 return "task dose not exist in this project"
             else:
                 user_in_task_exist = self.session.execute(select(UserTaskEntity).where(UserTaskEntity.task_id==task.id,UserTaskEntity.user_id==self.user_id))
                 user_in_task_exist = user_in_task_exist.scalars().one_or_none()
                 if user_in_task_exist ==None:
-                    # print("you not member in this project!")
                     return "you aren't member of this task!"
                 else:
                     temp = 0
@@ -575,22 +471,12 @@ class Tasks:
                             task.status = status
                         else:
                             temp += 5
-                            # print("status invalid")
-                            # return "invalid status"
                     if priority!="":
                         if priority in PriorityEnum:
                             task.priority = priority
                         else:
                             temp += 10
-                            # return "invalid priority"
-                    # if temp == 0 :
-                    #     # return "Task edited"
-                    # elif temp == 5 :
-                    #     # return "invalid status"
-                    # elif temp == 10 :
-                    #     # return "invalid priority"
-                    # elif temp == 15 :
-                    #     # return "invalid priority and status"
+
                     self.session.commit()
                     task_history = Task_History(edit_description=task.task_description,task_id=task.id,edit_status=task.status,edit_priority=task.priority, username = user.username)
                     self.session.add(task_history)
@@ -598,7 +484,9 @@ class Tasks:
                     self.session.refresh(task_history)
                     return temp
 
-    def list_history(self, pname, tname):
+    def list_history(self, pname: str, tname: str) -> Union[str, list]:
+        """This function takes needed argument and shows history list"""
+        
         self.user_id=self.user.get_id_user_login()
         project_name = pname
         taskname_name = tname
@@ -620,26 +508,21 @@ class Tasks:
 
         project_name_exist = project_name_exist.fetchone()
         if project_name_exist==None:
-                # print("you dont have a project with this name")
                 return "you dont have a project with this name"
         else:
             project_id = project_name_exist[1]
             task = self.session.execute(select(TaskEntity).filter(TaskEntity.project_id==project_id,TaskEntity.task_name==taskname_name))
             task=task.scalars().one_or_none()
             if task==None:
-                # print("this task dose not exist in this project")
                 return "this task dose not exist in this project"
             else:
                 user_in_task_exist = self.session.execute(select(UserTaskEntity).where(UserTaskEntity.task_id==task.id,UserTaskEntity.user_id==self.user_id))
                 user_in_task_exist = user_in_task_exist.scalars().one_or_none()
                 if user_in_task_exist ==None:
-                    # print("you not member in this project!")
                     return "you not member in this project!"
                 else:
                     history = self.session.execute(select(Task_History).filter(Task_History.task_id==task.id))
                     history = history.scalars().all()
-                    # for his in history:
-                    #     # print(his.edit_status)
 
                     history_data = [
                         {
@@ -656,7 +539,8 @@ class Tasks:
                     ]
                     return formatted_h_data
 
-    def delete_user_from_task(self, pname, tname, uname):
+    def delete_user_from_task(self, pname: str, tname: str, uname: str) -> str:
+        """This function takes needed argument and deletes a user from task"""
         self.user_id=self.user.get_id_user_login()
         project_name = pname
         task_name = tname
@@ -664,7 +548,6 @@ class Tasks:
         user_id_for_delete = self.session.execute(select(UserEntity).filter_by(username = username ))
         user_id_for_delete = user_id_for_delete.scalars().one_or_none()
         if user_id_for_delete ==None:
-            # print("this username dose not exist")
             return "this username dose not exist"
         else:
             delete_user_id = user_id_for_delete.id
@@ -685,7 +568,6 @@ class Tasks:
         ))
             project_name_exist = project_name_exist.fetchone()
             if project_name_exist == None:
-                # print("dose not exist this project")
                 return "dose not exist this project"
 
             else:
@@ -693,7 +575,6 @@ class Tasks:
                 is_leader = self.session.execute(select(LeaderEntity).where(LeaderEntity.user_id==self.user_id,LeaderEntity.project_id==project_id))
                 is_leader = is_leader.scalars().one_or_none()
                 if is_leader==None or is_leader==[]:
-                    # print("you are not leader")
                     return "you are not leader"
                 else:
                     user_delete_exist = self.session.execute(select(
@@ -713,28 +594,28 @@ class Tasks:
                 ))
                     user_delete_exist = user_delete_exist.fetchone()
                     if user_delete_exist == None:
-                        # print("this username dose not exist in this project")
+
                         return "this username dose not exist in this project"
                     else:
                         task = self.session.execute(select(TaskEntity).filter(TaskEntity.task_name==task_name,TaskEntity.project_id==project_id))
                         task = task.scalars().one_or_none()
                         if task == None:
-                            # print("this task dose not exist")
                             return "this task dose not exist"
                         else: 
                             user_exist_in_task = self.session.execute(select(UserTaskEntity).filter(UserTaskEntity.user_id==delete_user_id,UserTaskEntity.task_id==task.id))
                             user_exist_in_task = user_exist_in_task.scalars().one_or_none()
                             if user_exist_in_task == None:
-                                # print("this username dose not exist in this task")
                                 return "this username dose not exist in this task"
                             else:
                                 self.session.execute(delete(UserTaskEntity).filter(UserTaskEntity.user_id == delete_user_id,UserTaskEntity.task_id == task.id))
                                 self.session.commit()
                                 return 'successful'
 
-def string_to_int(value):
+def string_to_int(value: str) -> Union[int, None]:
+    """This function checks if a string can be converted to int"""
     try:
         return int(value)
     except (ValueError, TypeError):
+        logger.warning("entered date isn't intiger")
         return None
 

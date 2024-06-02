@@ -135,15 +135,15 @@ def main(page: ft.Page):
         else:
             page.add(ft.Text("Welcome!"))
 
-        create_project_button = ft.ElevatedButton(content=ft.Text("project",size=35),on_click=create_project_view, width=340,height=150, color= ft.colors.BLUE)
-        create_task_button = ft.ElevatedButton(content=ft.Text("Task",size=35),on_click=create_task_view, width=340,height=150, color= ft.colors.BLUE)
-        user_button = ft.ElevatedButton(content=ft.Text("User",size=35),on_click=user_view, width=340,height=150, color= ft.colors.BLUE)
-        add_user_to_project_button = ft.ElevatedButton(content=ft.Text("Add User To Project",size=30),on_click=add_user_to_project_view, width=340,height=150, color=ft.colors.GREEN)
+        create_project_button = ft.ElevatedButton(content=ft.Text("project",size=35),on_click=create_project_view, width=370,height=150, color= ft.colors.BLUE)
+        create_task_button = ft.ElevatedButton(content=ft.Text("Task",size=35),on_click=create_task_view, width=370,height=150, color= ft.colors.BLUE)
+        user_button = ft.ElevatedButton(content=ft.Text("User",size=35),on_click=user_view, width=370,height=150, color= ft.colors.BLUE)
+        add_user_to_project_button = ft.ElevatedButton(content=ft.Text("Add User To Project",size=30),on_click=add_user_to_project_view, width=370,height=150, color=ft.colors.GREEN)
         add_comment_to_task_button = ft.ElevatedButton(content=ft.Text("Add Comment To Task",size=30),on_click=add_comment_to_task_view, width=370,height=150, color=ft.colors.GREEN)
-        add_user_to_task_button = ft.ElevatedButton(content=ft.Text("Add User To Task",size=30), on_click=add_user_to_task_view, width=340,height=150, color=ft.colors.GREEN)
-        sighn_out_button = ft.ElevatedButton(content=ft.Text("sign out",size=35), on_click= signout_view, width=340,height=150, color=ft.colors.RED)
+        add_user_to_task_button = ft.ElevatedButton(content=ft.Text("Add User To Task",size=30), on_click=add_user_to_task_view, width=370,height=150, color=ft.colors.GREEN)
+        sighn_out_button = ft.ElevatedButton(content=ft.Text("sign out",size=35), on_click= signout_view, width=370,height=150, color=ft.colors.RED)
         page.add(ft.Row([create_project_button, create_task_button, user_button],alignment="center"))
-        page.add(ft.Row([add_user_to_project_button, add_comment_to_task_button, add_user_to_task_button],alignment="center"))
+        page.add(ft.Row([add_user_to_project_button, add_user_to_task_button, add_comment_to_task_button],alignment="center"))
         page.add(ft.Row([sighn_out_button],alignment="center"))
         page.update()
     
@@ -197,7 +197,7 @@ def main(page: ft.Page):
         logger.info("Opening 'ban user' menu")
 
         page.clean()
-        username = ft.TextField(label="Username you want to ban")
+        username = ft.TextField(label="Username")
         ban_button = ft.ElevatedButton(text="Ban", on_click=lambda _: store_ban_result(username.value))
         page.add(ft.Column([username, ban_button]))
         page.update()
@@ -218,7 +218,7 @@ def main(page: ft.Page):
         logger.info("Opening 'activate user' menu")
 
         page.clean()
-        username = ft.TextField(label="Username you want to activate")
+        username = ft.TextField(label="Username")
         activate_button = ft.ElevatedButton(text="Activate", on_click=lambda _: store_activate_result(username.value))
         page.add(ft.Column([username, activate_button]))
         page.update()
@@ -239,7 +239,7 @@ def main(page: ft.Page):
         logger.info("Opening 'delete user' menu")
 
         page.clean()
-        username = ft.TextField(label="Username you want to delet")
+        username = ft.TextField(label="Username")
         activate_button = ft.ElevatedButton(text="Delet", on_click=lambda _: store_delet_resualt(username.value))
         page.add(ft.Column([username, activate_button]))
         page.update()
@@ -299,10 +299,10 @@ def main(page: ft.Page):
         page.update()
 
     def leader_project_list_view(e):
-
+        """opens 'project list' menu in 'project'"""
         logger.debug("Attempting to show 'project list' in 'project' ")
+        
         page.clean()
-
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=user_view,icon_color=ft.colors.RED)
         text = ft.Text("Projects you are leader in", size=45)
         
@@ -323,7 +323,7 @@ def main(page: ft.Page):
             snackbar.content.value = "You don't have this project"
             snackbar.open = True
             page.snack_bar = snackbar
-            main_menu()
+            user_view(e)
 
         else:
             lv = ft.ListView(expand=1, spacing=10, padding=20,)
@@ -351,7 +351,7 @@ def main(page: ft.Page):
         page.add(ft.Column([back_button, project_name, create_button]))
         page.update()
 
-    def delete_project(e, pname):
+    def delete_project(e, pname: str) -> None:
         """This function takes needed arguments and deletes a project"""
         logger.debug(f"Atempting to delete {pname} project")
 
@@ -359,7 +359,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        create_project_view(e)
+        delete_project_view(e)
 
         page.update()
 
@@ -369,13 +369,13 @@ def main(page: ft.Page):
 
         page.clean()
         project_name = ft.TextField(label="Project Name")
-        user_name = ft.TextField(label="user Name")
+        user_name = ft.TextField(label="Username")
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_project_view,icon_color=ft.colors.RED)
         delete_button = ft.ElevatedButton(content=ft.Text("Delete",size=20), on_click=lambda _: delete_user_from_project(e, project_name.value, user_name.value),width=130, height=40)
         page.add(ft.Column([back_button, project_name, user_name, delete_button]))
         page.update()
 
-    def delete_user_from_project(e, pname, uname):
+    def delete_user_from_project(e, pname: str, uname: str) -> None:
         """This function takes needed arguments and deletes a user from a project"""
         logger.debug(f"Atempting to delete user : {uname}, from project : {pname}")
 
@@ -383,7 +383,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        create_project_view(e)
+        delete_user_from_project_view(e)
         page.update()
 
     def create_project_view2(e):
@@ -403,7 +403,7 @@ def main(page: ft.Page):
         
         page.clean()
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_project_view,icon_color=ft.colors.RED)
-        pname = ft.TextField(label="Project name ?")
+        pname = ft.TextField(label="Project Name")
         create_button = ft.ElevatedButton(content=ft.Text("List",size=20), on_click=lambda _: list_task(e, pname.value) ,width=130, height=40)
         page.add(ft.Column([back_button, pname, create_button]))
         page.update()
@@ -415,8 +415,8 @@ def main(page: ft.Page):
         page.clean()
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back, icon_color=ft.colors.RED)
         leader_project_list_button = ft.ElevatedButton(content=ft.Text("Leader Projects", size=35), on_click=leader_project_list_view, width=340, height=150, color=ft.colors.BLUE)
-        pl_button = ft.ElevatedButton(content=ft.Text("Show projects",size=35), on_click=lambda _: list_project2() ,width=340, height=150, color=ft.colors.BLUE)
-        tl_button = ft.ElevatedButton(content=ft.Text("Show tasks",size=35), on_click=lambda _: list_task2() ,width=340, height=150, color=ft.colors.BLUE)
+        pl_button = ft.ElevatedButton(content=ft.Text("Show projects",size=35), on_click=lambda _: list_project2(e) ,width=340, height=150, color=ft.colors.BLUE)
+        tl_button = ft.ElevatedButton(content=ft.Text("Show tasks",size=35), on_click=lambda _: list_task2(e) ,width=340, height=150, color=ft.colors.BLUE)
 
         row = ft.Row(
         [ 
@@ -442,21 +442,20 @@ def main(page: ft.Page):
         logger.debug("Attempting to open 'userlist' in 'project'")
         
         page.clean()
-        # project_name = ft.TextField(label="Project Name")
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_project_view,icon_color=ft.colors.RED)
-        pname = ft.TextField(label="Project name ")
+        pname = ft.TextField(label="Project Name ")
 
         create_button = ft.ElevatedButton(content=ft.Text("Show",size=20), on_click=lambda _: project_user_list(e, pname.value) ,width=140, height=30)
 
         page.add(ft.Column([back_button, pname, create_button]))
         page.update()
 
-    def project_user_list(e, pname):
+    def project_user_list(e, pname: str) -> None:
         
         logger.debug("Attempting to show 'users list' in 'project' ")
         page.clean()
 
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_project_view,icon_color=ft.colors.RED)
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=user_list_view,icon_color=ft.colors.RED)
         text = ft.Text("users in this project", size=45)
         
         row = ft.Row(
@@ -477,7 +476,7 @@ def main(page: ft.Page):
             snackbar.content.value = "You don't have this project"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_project_view(e)
+            user_list_view(e)
 
         else:
             # snackbar.content.value = massage
@@ -514,10 +513,10 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        create_project_view(e)
+        create_project_view2(e)
         page.update()
 
-    def list_project2():
+    def list_project2(e):
         logger.debug("Attempting to show 'project list' in 'User'")
         page.clean()
 
@@ -542,7 +541,7 @@ def main(page: ft.Page):
             snackbar.content.value = "You are not in any project yet"
             snackbar.open = True
             page.snack_bar = snackbar
-            main_menu()
+            user_view(e)
         else:
 
             lv = ft.ListView(expand=1, spacing=10, padding=20,)
@@ -619,7 +618,7 @@ def main(page: ft.Page):
         logger.debug("Attempting to show 'users list' in 'Task' ")
         page.clean()
 
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back,icon_color=ft.colors.RED)
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=user_list_view2,icon_color=ft.colors.RED)
         text = ft.Text("Users in this Task", size=45)
         
         row = ft.Row(
@@ -640,7 +639,7 @@ def main(page: ft.Page):
             snackbar.content.value = "This task doesn't have any user"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_task_view(e)
+            user_list_view2(e)
 
         else:
             # snackbar.content.value = massage
@@ -662,18 +661,18 @@ def main(page: ft.Page):
 
         page.clean()
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_task_view,icon_color=ft.colors.RED)
-        pname = ft.TextField(label="project name")
-        tname = ft.TextField(label="task name")
-        create_button = ft.ElevatedButton(content=ft.Text("Show",size=20), on_click=lambda _: list_comment1(pname.value, tname.value) ,width=130, height=40)
+        pname = ft.TextField(label="Project Name")
+        tname = ft.TextField(label="Task Name")
+        create_button = ft.ElevatedButton(content=ft.Text("Show",size=20), on_click=lambda _: list_comment1(e, pname.value, tname.value) ,width=130, height=40)
         page.add(ft.Column([back_button, pname, tname, create_button]))
         page.update()
 
-    def list_comment1(pname: str, tname: str) -> None:
+    def list_comment1(e, pname: str, tname: str) -> None:
         """This function shows list of comments in a task"""
         logger.debug("Attempting to show 'comments list' in 'Task' ")
 
         page.clean()
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back,icon_color=ft.colors.RED)
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=comment_list_view,icon_color=ft.colors.RED)
         text = ft.Text("comments in this Task", size=45)
         
         row = ft.Row(
@@ -692,7 +691,7 @@ def main(page: ft.Page):
             snackbar.content.value = "This task doesn't have any comments"
             snackbar.open = True
             page.snack_bar = snackbar
-            main_menu()
+            comment_list_view(e)
         else:
             lv = ft.ListView(expand=1, spacing=10, padding=20,)
             page.add(lv)
@@ -716,9 +715,8 @@ def main(page: ft.Page):
         priority = ft.TextField(label="Priority")
         status = ft.TextField(label="Status")
         task_description = ft.TextField(label="Task Description")
-        # start_date = ft.TextField(label="Start date")
-        finish_date = ft.TextField(label="Finish date")
-        create_button = ft.ElevatedButton(content=ft.Text("Create",size=20), on_click=lambda _: create_task(add_task_to_which_project.value, task_name.value, task_description.value, priority.value, status.value, finish_date.value),width=130, height=40)
+        finish_date = ft.TextField(label="Finish Days")
+        create_button = ft.ElevatedButton(content=ft.Text("Create",size=20), on_click=lambda _: create_task(e, add_task_to_which_project.value, task_name.value, task_description.value, priority.value, status.value, finish_date.value),width=130, height=40)
         page.add(ft.Column([back_button, add_task_to_which_project, task_name,priority, status , task_description, finish_date, create_button]))
         page.update()
 
@@ -733,7 +731,7 @@ def main(page: ft.Page):
         priority = ft.TextField(label="Priority")
         status = ft.TextField(label="Status")
         description = ft.TextField(label="Description")
-        edit_button = ft.ElevatedButton(content=ft.Text("Edit",size=20), on_click=lambda _: edit_task(pname.value, tname.value, priority.value, status.value, description.value),width=130, height=40)
+        edit_button = ft.ElevatedButton(content=ft.Text("Edit",size=20), on_click=lambda _: edit_task(e, pname.value, tname.value, priority.value, status.value, description.value),width=130, height=40)
         page.add(ft.Column([back_button, pname, tname, priority, status, description, edit_button]))
         page.update()
 
@@ -749,7 +747,7 @@ def main(page: ft.Page):
         delete_button = ft.ElevatedButton(content=ft.Text("Edit",size=20), on_click=lambda _: delete_user_task(e ,pname.value, tname.value, uname.value),width=130, height=40)
         page.add(ft.Column([back_button, pname, tname, uname, delete_button]))
     
-    def delete_user_task(e, pname, tname, uname):
+    def delete_user_task(e, pname: str, tname: str, uname: str) -> None:
         """This function takes needed arguments and deletes a user from project"""
         logger.debug(f"Atempting to delete username : {uname} from task : {tname}")
 
@@ -757,7 +755,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        create_project_view(e)
+        delete_user_task_view(e)
 
         page.update()
 
@@ -773,11 +771,11 @@ def main(page: ft.Page):
         page.add(ft.Column([back_button,pname,tname, show_button]))
         page.update()
 
-    def show_history(e, pname, tname):
+    def show_history(e, pname: str, tname: str) -> None:
         logger.debug("Attempting to show 'task history' ")
         page.clean()
 
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_task_view,icon_color=ft.colors.RED)
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=history_view,icon_color=ft.colors.RED)
         text = ft.Text("History of this task", size=45)
         
         row = ft.Row(
@@ -797,21 +795,21 @@ def main(page: ft.Page):
             snackbar.content.value = "you dont have a project with this name"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_task_view(e)
+            history_view(e)
 
         elif massage == "this task dose not exist in this project":
             
             snackbar.content.value = "this task dose not exist in this project"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_task_view(e)       
+            history_view(e)       
 
         elif massage == "you not member in this project!":
             
             snackbar.content.value = "you not member in this project!"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_task_view(e)   
+            history_view(e)   
 
         else:
             # snackbar.content.value = massage
@@ -827,7 +825,7 @@ def main(page: ft.Page):
 
         page.update()
 
-    def edit_task(pname, tname, priority, status, description):
+    def edit_task(e, pname: str, tname: str, priority: str, status: str, description: str) -> None:
         """This function takes needed argumants and creates tasks. (a project can't have two task with the same name)"""
         logger.debug(f"Atempting to edit {tname} task")
 
@@ -845,7 +843,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        main_menu()
+        edit_task_view(e)
         page.update()
 
     def list_task(e, pname: str) -> None:
@@ -853,7 +851,7 @@ def main(page: ft.Page):
         logger.debug("Attempting to show 'tasks list' in 'project' ")
 
         page.clean()
-        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=create_project_view,icon_color=ft.colors.RED)
+        back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=task_list_view,icon_color=ft.colors.RED)
         text = ft.Text("Tasks in this project", size=45)
         row = ft.Row(
         [
@@ -871,7 +869,7 @@ def main(page: ft.Page):
             snackbar.content.value = "You don't have this project or you don't have this task in project"
             snackbar.open = True
             page.snack_bar = snackbar
-            create_project_view(e)
+            task_list_view(e)
         else:
             lv = ft.ListView(expand=1, spacing=10, padding=20,)
             page.add(lv)
@@ -884,7 +882,7 @@ def main(page: ft.Page):
             sleep(1)
         page.update()
 
-    def list_task2():
+    def list_task2(e):
         """This function shows 'task list' in 'user' """
         logger.debug("Attempting to show 'tasks list' in 'User' ")
 
@@ -908,7 +906,7 @@ def main(page: ft.Page):
             snackbar.content.value = "You are not in any task yet"
             snackbar.open = True
             page.snack_bar = snackbar
-            main_menu()
+            user_view(e)
         else:
 
             lv = ft.ListView(expand=1, spacing=10, padding=20,)
@@ -920,7 +918,7 @@ def main(page: ft.Page):
             sleep(1)
         page.update()
 
-    def create_task(add_task_to_which_project: str,task_name: str, task_description: str, priority, status, finish_date) -> None:
+    def create_task(e, add_task_to_which_project: str,task_name: str, task_description: str, priority: str, status: str, finish_date: str) -> None:
         """This function takes needed argumants and creates tasks. (a project can't have two task with the same name)"""
         logger.debug(f"Atempting to crate {task_name} task")
         # user = page.session.get("user")
@@ -928,7 +926,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        main_menu()
+        create_task_view2(e)
         page.update()
 
     def add_user_to_project_view(e):
@@ -936,14 +934,14 @@ def main(page: ft.Page):
         logger.info("Opening 'add user to project' menu")
 
         page.clean()
-        username_for_adding_to_project = ft.TextField(label="Username To Add To Project")
-        project_name_for_adding_user = ft.TextField(label="Project Name For Adding User To")
+        username_for_adding_to_project = ft.TextField(label="Username")
+        project_name_for_adding_user = ft.TextField(label="Project Name")
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back,icon_color=ft.colors.RED)
-        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_project(username_for_adding_to_project.value,project_name_for_adding_user.value),width=120, height=40)
+        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_project(e, username_for_adding_to_project.value,project_name_for_adding_user.value),width=120, height=40)
         page.add(ft.Column([back_button,username_for_adding_to_project, project_name_for_adding_user, add_button]))
         page.update()
 
-    def add_user_to_project(uname: str, pname: str) -> None:
+    def add_user_to_project(e, uname: str, pname: str) -> None:
         """This function takes needed argumants and adds user to project."""
         logger.debug(f"Attemting to add {uname} user to {pname} project")
         # user = page.session.get("user")
@@ -952,7 +950,7 @@ def main(page: ft.Page):
         print(massage)
         snackbar.open = True
         page.snack_bar = snackbar
-        main_menu()
+        add_user_to_project_view(e)
         page.update()
 
     def add_comment_to_task_view(e):
@@ -960,15 +958,15 @@ def main(page: ft.Page):
         logger.debug("Opening 'add comment to task' menu")
 
         page.clean()
-        pname = ft.TextField(label="This Comment Adds To Which Project?")
-        tname = ft.TextField(label="This Comment Adda To Which Task?")
-        comment = ft.TextField(label="Your Comment")
+        pname = ft.TextField(label="Project Name")
+        tname = ft.TextField(label="Task Name")
+        comment = ft.TextField(label="Comment")
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back,icon_color=ft.colors.RED)
-        add_comment_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_comment_to_task(pname.value, tname.value, comment.value),width=120, height=40)
+        add_comment_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_comment_to_task(e, pname.value, tname.value, comment.value),width=120, height=40)
         page.add(ft.Column([back_button,pname, tname, comment, add_comment_button]))
         page.update()
 
-    def add_comment_to_task(pname: str, tname: str, comment: str) -> None:
+    def add_comment_to_task(e, pname: str, tname: str, comment: str) -> None:
         """This function takes needed argumants and adds comment to task."""
         logger.debug(f"Attemptin to add {comment} comment to {tname} task")
         # user = page.session.get("user")
@@ -976,7 +974,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        main_menu()
+        add_comment_to_task_view(e)
         page.update()
 
     def add_user_to_task_view(e):
@@ -984,15 +982,15 @@ def main(page: ft.Page):
         logger.info("Opening 'add user to task' menu")
 
         page.clean()
-        pname = ft.TextField(label="Project Name Of Task")
-        tname = ft.TextField(label="Add User To Which task?")
-        uname = ft.TextField(label="Username You Want To Add")
+        pname = ft.TextField(label="Project Name")
+        tname = ft.TextField(label="Task Name")
+        uname = ft.TextField(label="Username")
         back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=go_back,icon_color=ft.colors.RED)
-        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_task(pname.value, tname.value, uname.value),width=120, height=40)
+        add_button = ft.ElevatedButton(content=ft.Text("Add",size=20), on_click=lambda _: add_user_to_task(e, pname.value, tname.value, uname.value),width=120, height=40)
         page.add(ft.Column([back_button,pname, tname, uname, add_button]))
         page.update()
 
-    def add_user_to_task(pname: str, tname: str, uname: str) -> None:
+    def add_user_to_task(e, pname: str, tname: str, uname: str) -> None:
         """This function takes needed argumants and adds task to user."""
         logger.debug(f"Attempting to add {uname} user to {tname} task")
         # user = page.session.get("user")
@@ -1000,7 +998,7 @@ def main(page: ft.Page):
         snackbar.content.value = massage
         snackbar.open = True
         page.snack_bar = snackbar
-        main_menu()
+        add_user_to_task_view(e)
         page.update()
 
     def signout_view(e):

@@ -1,6 +1,7 @@
 import argparse
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, MetaData, text, Table, select
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import relationship, sessionmaker
 from model.base_entity import Base
 from model import base_entity
@@ -13,15 +14,22 @@ from psycopg2 import sql
 from rich.console import Console
 from rich.text import Text
 from rich.prompt import Prompt
+from model.base_entity import UserEntity, ManagerEntity
+import bcrypt
+engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 
-def create_admin(username, password):
+def get_session():
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
+
+def create_admin(username: str, password: str) -> None:
     """This function adds Admin to database"""
     if not username or not password:
         print("Username and password are required to create an admin.")
         return
     x = manager()
     x.create_admin(username, password)
-
 
 def purge_data():
     """This function clears all data in database"""
@@ -80,12 +88,19 @@ def main():
         create_admin(args.username, args.password)
     elif args.command == "purge-data":
         choice = Prompt.ask("[bold red]Are you sure? (y/n)[/bold red]")
+        admin_name = Prompt.ask("Enter Admin username: ")
+        admin_pass = Prompt.ask("Enter Admin password: ")
         if choice == 'y' or 'Y':
-            purge_data()
+            session = get_session()
+            admin = session.execute(select(ManagerEntity).where(ManagerEntity.admin_name == admin_name)).scalars().one_or_none()
+            session.close()
+            if admin is None or not bcrypt.checkpw(admin_pass.encode('utf-8'), admin.admin_pass.encode('utf-8')):
+                print("invalid admin credentials")
+            else:
+                purge_data()
 
     else:
         parser.print_help()
-
 
 if __name__ == "__main__":
     main()

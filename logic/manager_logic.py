@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.text import Text
 from loguru import logger
 import bcrypt
+from typing import Union
 
 engine = create_engine("postgresql://postgres:foxit@localhost/t2")
 logger.add(
@@ -26,7 +27,6 @@ def get_session():
     session = Session()
     return session
 
-
 class manager:
     def __init__(self):
         self.session = get_session()
@@ -36,13 +36,11 @@ class manager:
         """This function adds Admin to database"""
 
         hashed_password = bcrypt.hashpw(admin_pass.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        # new_user = UserEntity(username=username, gmail=gmail, hash_password=hashed_password)
 
         console = Console()
         admin = self.session.execute(select(ManagerEntity).filter_by(admin_name=admin_name))
         result_edited = admin.scalars().one_or_none()
 
-        # print(result_edited)
         if result_edited:
             logger.warning(f"Admin : {admin_name} , alreadt has account")
 
@@ -61,8 +59,7 @@ class manager:
 
             return True
 
-
-def check_is_user_active(username: str) -> bool:
+def check_is_user_active(username: str) -> Union[bool, None]:
     """This function checks if a user is banned or not"""
 
     metadata = MetaData()
@@ -81,59 +78,18 @@ def check_is_user_active(username: str) -> bool:
         
     except Exception as e:
         print(f"An error occurred: {e}")
-        # return False
     
     finally:
         session.close()
 
-# def ban_user(username: str) -> str:
-#     """This function takes needed argumant and bans user"""
-    
-#     conn = psycopg2.connect(
-#         dbname="t2",
-#         user="postgres",
-#         password="foxit",
-#         host="localhost",
-#         port="5432"  
-#     )
-
-#     cur = conn.cursor()
-
-#     username_to_inactivate = username
-#     isactive = 'f'
-#     select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
-
-#     cur.execute(select_query, (username,))
-#     row_count = cur.fetchone()[0]
-    
-#     if row_count > 0 and check_is_user_active(username):
-#         logger.success(f"user : {username} , banned successfuly")
-
-#         update_query = "UPDATE users SET is_active = %s WHERE username = %s;"
-#         cur.execute(update_query, (isactive,username))
-#         conn.commit()
-#         logger.success(f"user: {username} banned successfuly")
-#         return "user banned successfully"
-
-#     elif row_count == 0:
-#         logger.warning(f"user: {username}, doesn't have account")
-
-#         return "user does not exist. you may have entered username wrong."
-#     else:
-#         logger.warning(f"user: {username}, is already banned")
-
-#         return "user is already baned"
-        
-
-#     cur.close()
-#     conn.close()
-
 def ban_user(username: str) -> str:
     """This function takes needed argumant and bans user"""
     try:
-        engine = create_engine('postgresql://postgres:foxit@localhost:5432/t2')
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        # engine = create_engine('postgresql://postgres:foxit@localhost:5432/t2')
+        # Session = sessionmaker(bind=engine)
+        # session = Session()
+
+        session = get_session()
 
         user = session.query(UserEntity).filter_by(username=username).first()
 
@@ -160,7 +116,6 @@ def ban_user(username: str) -> str:
 def activate_user(username: str) -> str:
     """This function takes needed argumant and activates user"""
 
-
     conn = psycopg2.connect(
         dbname="t2",
         user="postgres",
@@ -173,10 +128,7 @@ def activate_user(username: str) -> str:
 
     username_to_activate = username
     isactive = 't'
-
-
     select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
-
     cur.execute(select_query, (username,))
     row_count = cur.fetchone()[0]
     
@@ -200,73 +152,4 @@ def activate_user(username: str) -> str:
 
     cur.close()
     conn.close()
-
-# def check_deleted_user(username: str) -> bool:
-#     """This function checks if a user is deleted or not"""
-
-#     metadata = MetaData()
-#     metadata.reflect(bind=engine, only=['users'])
-#     Users = metadata.tables['users']
-    
-#     session = get_session()
-    
-#     try:
-#         result = session.query(Users.c.is_deleted).filter(Users.c.username == username).first()
-        
-#         if result:
-#             logger.success(f"user : {username}, is deleted")
-
-#             return result.is_deleted
-#         else:
-#             return None
-        
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
-#         return None
-    
-#     finally:
-#         session.close()
-
-# def delet_user(username: str) -> str:
-#     """This function takes needed argumant and deletes user"""
-
-#     conn = psycopg2.connect(
-#         dbname="t2",
-#         user="postgres",
-#         password="foxit",
-#         host="localhost",
-#         port="5432"  
-#     )
-
-#     cur = conn.cursor()
-
-#     username_to_activate = username
-#     isdeleted = 't'
-
-
-#     select_query = "SELECT COUNT(*) FROM users WHERE username = %s;"
-
-#     cur.execute(select_query, (username,))
-#     row_count = cur.fetchone()[0]
-    
-#     if row_count > 0 and  not check_deleted_user(username):
-#         logger.success(f"user: {username}, deleted successfuly")
-
-#         update_query = "UPDATE users SET is_deleted = %s WHERE username = %s;"
-#         cur.execute(update_query, (isdeleted,username))
-#         conn.commit()
-
-#         return "user deleted successfully"
-
-#     elif row_count == 0 :
-#         logger.warning(f"user: {username}, doesn't have account!")
-
-#         return "user does not exist. you may have entered username wrong"
-#     else:
-#         logger.warning(f"user: {username}, is already deleted!")
-        
-#         return "user is already deleted!"
-
-#     cur.close()
-#     conn.close()
 

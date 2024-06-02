@@ -1,11 +1,12 @@
 
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, Date
+from sqlalchemy import Column, BIGINT, DateTime, BOOLEAN, BigInteger, Boolean, Date, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Enum
 import enum
 from sqlalchemy.orm import Mapped, mapped_column,relationship
+from uuid import uuid4
 Base = declarative_base()
 
 class StatusEnum(enum.Enum):
@@ -54,7 +55,8 @@ class BaseEntity(Base):
 
 class TaskEntity(BaseEntity):
     __tablename__ = "tasks"
-
+    uuID = Column(UUID(as_uuid=True),default=uuid4,)
+    
     task_id = Column(BIGINT, unique=True,index=True)
     task_name = Column(String)
     task_description = Column(String)
@@ -65,7 +67,6 @@ class TaskEntity(BaseEntity):
     project = relationship("ProjectEntity",back_populates="tasks")
 
     leader_id = Column(BIGINT,ForeignKey('leaders.id'),nullable=True )
-    # start_date = Column(Date)
     finish_date = Column(BIGINT)
 
 
@@ -92,7 +93,7 @@ class ManagerEntity(BaseEntity):
     __tablename__ = "admin"
     
     admin_name = Column(String)
-    admin_pass = Column(String)
+    admin_pass = Column(String(200))
 
 class LeaderEntity(BaseEntity):
     __tablename__ = "leaders"
