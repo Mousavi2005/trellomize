@@ -1,0 +1,2 @@
+python ./manager.py create-admin --username admin --password 007
+python ./manager.py purge-data
